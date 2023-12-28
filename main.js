@@ -1,6 +1,8 @@
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import vertexShader from "./shaders/vertex.glsl";
 import fragmentShader from "./shaders/fragment.glsl";
+import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
+import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 
 // console.log(vertexShader); //check if custom vertexShader is working
 // console.log(fragmentShader);
@@ -46,11 +48,25 @@ const sphere = new THREE.Mesh(
 
 scene.add(sphere);
 
+// create outer 2nd atmosphere
+const atmosphere = new THREE.Mesh(
+  new THREE.SphereGeometry(5, 50, 50),
+  new THREE.ShaderMaterial({
+    vertexShader: atmosphereVertexShader,
+    fragmentShader: atmosphereFragmentShader,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+  })
+);
+// console.log(sphere); //check if sphere working
+atmosphere.scale.set(1.2, 1.2, 1.2);
+scene.add(atmosphere);
 camera.position.z = 15;
 
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
+  sphere.rotation.y += 0.001;
 }
 
 animate();
