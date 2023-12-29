@@ -3,6 +3,7 @@ import vertexShader from "./shaders/vertex.glsl";
 import fragmentShader from "./shaders/fragment.glsl";
 import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
 import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
+import gsap from "gsap";
 
 // console.log(vertexShader); //check if custom vertexShader is working
 // console.log(fragmentShader);
@@ -46,8 +47,6 @@ const sphere = new THREE.Mesh(
 );
 // console.log(sphere); //check if sphere working
 
-scene.add(sphere);
-
 // create outer 2nd atmosphere
 const atmosphere = new THREE.Mesh(
   new THREE.SphereGeometry(5, 50, 50),
@@ -59,14 +58,33 @@ const atmosphere = new THREE.Mesh(
   })
 );
 // console.log(sphere); //check if sphere working
-atmosphere.scale.set(1.2, 1.2, 1.2);
+atmosphere.scale.set(1.15, 1.15, 1.15);
 scene.add(atmosphere);
+
+//Three.js Group - to add a secondary spin effect
+const group = new THREE.Group();
+group.add(sphere); //similar like adding scene
+scene.add(group);
+
 camera.position.z = 15;
+
+const mouse = {
+  x: undefined,
+  y: undefined,
+};
 
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
   sphere.rotation.y += 0.001;
+  group.rotation.y = mouse.x;
 }
 
 animate();
+
+addEventListener("mousemove", () => {
+  mouse.x = (event.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+
+  console.log(mouse.x, mouse.y);
+});
