@@ -5,17 +5,52 @@
     <meta name="viewport" content="width=<device-width>, initial-scale=1.0" />
     <title>3D Earth Portfolio</title>
     <link href="tailwind.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Exo+2:wght@700&family=Lato&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
       body {
         margin: 0;
         -webkit-font-smoothing: antialiased;
       }
+
+      .font-exo {
+        font-family: "Exo 2", sans-serif;
+      }
+      .font-spice {
+        font-family: "Bungee Spice", sans-serif;
+      }
+      .font-lato {
+        font-family: "Lato", sans-serif;
+      }
     </style>
   </head>
   <body>
-    <div class="flex h-screen">
-      <div class="w-1/2">
-        <h1>hdjskahdskjahkd</h1>
+    <div class="flex h-screen bg-black">
+      <div class="w-1/2 flex flex-col justify-center px-8">
+        <div style="max-width: 500px" class="mx-auto">
+          <h1 class="text-white text-4xl mb-8 font-exo leading-none">
+            CHALLENGING THE STANDARD OF WEB DEVELOPMENT , IOT COMMUNICATION AND
+            INDUSTRIAL PLC
+          </h1>
+          <p class="text-gray-400 mb-8 font-lato">
+            Millions of developers and companies build , ship and maintain their
+            softwares but some developing continue exploring the possibilities
+            on the venturing of bridging the possibilities of tech stack
+          </p>
+          <div>
+            <!-- Put it in div so that it does not apply flex -->
+            <a
+              href=""
+              class="text-white bg-green-600 inline-block px-8 py-4 rounded-full font-lato"
+              >Learn More About Me</a
+            >
+          </div>
+        </div>
       </div>
       <div class="w-1/2" id="canvasContainer">
         <canvas></canvas>
