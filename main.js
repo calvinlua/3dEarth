@@ -5,13 +5,15 @@ import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
 import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 import gsap from "gsap";
 
+const canvasContainer = document.querySelector("#canvasContainer");
+
 // console.log(vertexShader); //check if custom vertexShader is working
 // console.log(fragmentShader);
 const scene = new THREE.Scene();
 // console.log(scene); // Check whether the import is done
 const camera = new THREE.PerspectiveCamera(
   75, //fov
-  innerWidth / innerHeight, //aspect
+  canvasContainer.offsetWidth / canvasContainer.offsetHeight, //aspect
   0.1, //near
   1000 //far
 );
@@ -19,11 +21,13 @@ scene.add(camera);
 
 //Prepare "3D Canvas" with rendered WEBGL
 const renderer = new THREE.WebGLRenderer({
-  antialias: true, //remove jaggy edge
+  antialias: true, //remove jaggy edge,
+  canvas: document.querySelector("canvas"),
 });
-renderer.setSize(innerWidth, innerHeight); // Set canvas same as innerWidth and innerHeight for windows
+// renderer.setSize(innerWidth, innerHeight); // Set canvas same as innerWidth and innerHeight for windows
+renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 renderer.setPixelRatio(window.devicePixelRatio); // increase pixels as screen size increase
-document.body.appendChild(renderer.domElement); //.domElement is a canvas where the renderer draws its output
+// document.body.appendChild(renderer.domElement); //.domElement is a canvas where the renderer draws its output
 
 //create a sphere
 //create with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
