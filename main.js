@@ -31,8 +31,9 @@ renderer.setPixelRatio(window.devicePixelRatio); // increase pixels as screen si
 
 //create a sphere
 //create with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
+const earthRadius = 5;
 const sphere = new THREE.Mesh(
-  new THREE.SphereGeometry(5, 50, 50),
+  new THREE.SphereGeometry(earthRadius, 50, 50),
   // new THREE.MeshBasicMaterial  ({
   // color: 0xff0000,
   // map: new THREE.TextureLoader().load("/globe.jpg"), }) );
@@ -83,7 +84,7 @@ for (let i = 0; i < 10000; i++) {
   starVertices.push(x, y, z); //push into an array for starVertices
 }
 
-console.log(starVertices);
+// console.log(starVertices);
 starGeometry.setAttribute(
   "position",
   new THREE.Float32BufferAttribute(starVertices, 3)
@@ -95,6 +96,45 @@ scene.add(stars);
 
 camera.position.z = 15;
 
+function createPoint(lat, long) {
+  //can use raycaster in three.js to show some value on the sphere point
+  const point = new THREE.Mesh(
+    new THREE.SphereGeometry(0.05, 50, 50), //set radius to 1
+    new THREE.MeshBasicMaterial({
+      color: "#ff0000",
+    })
+  );
+
+  //latitude +ve °N upper half , -ve °S lower half
+  //longitude +ve °E right half , -ve °W left half of globe
+  //convert degree angle to radian
+  const latitude = (lat / 180) * Math.PI;
+  const longitude = (long / 180) * Math.PI;
+
+  // formula for the 3D space on longitude and latitude, the angle here is radian (latitude and longitude)
+  const x = earthRadius * Math.cos(latitude) * Math.sin(longitude);
+  const y = earthRadius * Math.sin(latitude);
+  const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
+
+  point.position.x = x;
+  point.position.y = y;
+  point.position.z = z;
+
+  group.add(point);
+}
+
+// 1.3521° N, 103.8198° E singapore ( in degree)
+// 3.1319° N, 101.6841° E KL (in angle degree)
+createPoint(1.3521, 103.8198); // Singapore
+createPoint(3.1319, 101.6841); //KL
+createPoint(23.6345, -102.5528); //mexico 23.6345° N, 102.5528° W
+createPoint(-14.235, -51.9235); // Brazil 14.2350° S, 51.9253° W
+createPoint(39.9042, 116.4074); // Beijing 39.9042° N, 116.4074° E
+
+// point.position.z = earthRadius + 1; // because globe radius is 5 , inside it cant be seen
+
+sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of texture image to the sphere
+
 const mouse = {
   x: undefined,
   y: undefined,
@@ -103,11 +143,11 @@ const mouse = {
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
-  sphere.rotation.y += 0.001;
+  // sphere.rotation.y += 0.002;
 
   gsap.to(group.rotation, {
-    x: -mouse.y * 0.5,
-    y: mouse.x * 0.5,
+    x: -mouse.y * 1.8,
+    y: mouse.x * 1.8,
     duration: 2,
   });
 }
