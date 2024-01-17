@@ -8,7 +8,7 @@ on:
   push:
     # filter only main branch will happen
     branches:
-      - main
+      - master
 jobs:
   # one job at the moment for production at vercel
   Deploy-Production:
