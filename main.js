@@ -1,3 +1,4 @@
+import "./tailwind.css"; //to avoid caching issues and to preload before main.js
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import vertexShader from "./shaders/vertex.glsl";
 import fragmentShader from "./shaders/fragment.glsl";
@@ -144,12 +145,14 @@ function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
   // sphere.rotation.y += 0.002;
-
+  // avoid globe not loading waiting for mouse input
+if (mouse.x){
   gsap.to(group.rotation, {
     x: -mouse.y * 1.8,
     y: mouse.x * 1.8,
     duration: 2,
   });
+} 
 }
 
 animate();
