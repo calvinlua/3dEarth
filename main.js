@@ -1,3 +1,4 @@
+import "./tailwind.css"; //to avoid caching issues and to preload before main.js
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import vertexShader from "./shaders/vertex.glsl";
 import fragmentShader from "./shaders/fragment.glsl";
@@ -94,12 +95,30 @@ const stars = new THREE.Points(starGeometry, starMaterial);
 // console.log(stars);
 scene.add(stars);
 
+//// for the 3D animated lines to travel from one point to another (from CHATGPT)
+// // Determine start and end points on the globe's surface
+// var startPoint = new THREE.Vector3(5, 0, 0); // Example start point
+// var endPoint = new THREE.Vector3(0, 5, 0); // Example end point
+
+// // Create a line geometry between the start and end points
+// var lineGeometry = new THREE.BufferGeometry().setFromPoints([
+//   startPoint,
+//   endPoint,
+// ]);
+// var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+// var line = new THREE.Line(lineGeometry, lineMaterial);
+// scene.add(line);
+
+// // Animate the line's vertices
+// var animationDuration = 5000; // in milliseconds
+// var animationStartTime = Date.now();
+
 camera.position.z = 15;
 
 function createPoint(lat, long) {
   //can use raycaster in three.js to show some value on the sphere point
   const point = new THREE.Mesh(
-    new THREE.SphereGeometry(0.05, 50, 50), //set radius to 1
+    new THREE.BoxGeometry(0.1, 0.1, 0.8), //scale x , scale y , scale z
     new THREE.MeshBasicMaterial({
       color: "#ff0000",
     })
@@ -119,6 +138,11 @@ function createPoint(lat, long) {
   point.position.x = x;
   point.position.y = y;
   point.position.z = z;
+
+  point.lookAt(0, 0, 0); //perpendicular , boxgeometry always look at the center because sphere is default at 0,0,0
+  point.geometry.applyMatrix4(
+    new THREE.Matrix4().makeTranslation(0, 0, -0.4) //translate object in 3d SPACE x,y,z , 0.8/2
+  ); //translate those points that are hiding inside the globe
 
   group.add(point);
 }
@@ -142,14 +166,38 @@ const mouse = {
 
 function animate() {
   requestAnimationFrame(animate);
+  //// for the 3D animated lines to travel from one point to another (from CHATGPT)
+  // var now = Date.now();
+  // var progress = (now - animationStartTime) / animationDuration;
+
+  // // Update line position based on animation progress
+  // var currentPosition = new THREE.Vector3()
+  //   .copy(startPoint)
+  //   .lerp(endPoint, progress);
+  // line.geometry.attributes.position.setXYZ(
+  //   1,
+  //   currentPosition.x,
+  //   currentPosition.y,
+  //   currentPosition.z
+  // );
+  // line.geometry.attributes.position.needsUpdate = true;
+
   renderer.render(scene, camera);
   // sphere.rotation.y += 0.002;
+  // avoid globe not loading waiting for mouse input
+  if (mouse.x) {
+    gsap.to(group.rotation, {
+      x: -mouse.y * 1.8,
+      y: mouse.x * 1.8,
+      duration: 2,
+    });
+  }
 
-  gsap.to(group.rotation, {
-    x: -mouse.y * 1.8,
-    y: mouse.x * 1.8,
-    duration: 2,
-  });
+  //// for the 3D animated lines to travel from one point to another (from CHATGPT)
+  // // Stop animation when progress reaches 1
+  // if (progress >= 1) {
+  //   cancelAnimationFrame(animate);
+  // }
 }
 
 animate();
