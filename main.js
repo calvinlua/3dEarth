@@ -121,6 +121,8 @@ function createPoint(lat, long) {
     new THREE.BoxGeometry(0.2, 0.2, 0.8), //scale x , scale y , scale z
     new THREE.MeshBasicMaterial({
       color: "#3BF7FF",
+      opacity: 0.4, // need to make transparent property true only work
+      transparent: true,
     })
   );
 
@@ -176,14 +178,15 @@ const mouse = {
 }; // vector 2 pointer based on raycaster threejs
 
 const raycaster = new THREE.Raycaster();
-console.log(raycaster);
-console.log(group.children); // can find what we need to detect from console.log(scene.children);
+const popUpEl = document.querySelector("#popUpEl");
+console.log(popUpEl); // to check if we are select things
 
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 
   group.rotation.y += 0.002;
+
   // avoid globe not loading waiting for mouse input
   // if (mouse.x) {
   //   gsap.to(group.rotation, {
@@ -213,16 +216,32 @@ function animate() {
   // update the picking ray with the camera and pointer position
   raycaster.setFromCamera(mouse, camera);
 
-  // calculate objects intersecting the picking ray
+  // calculate objects intersecting the picking ray , can console log out the filter to see what is it
   const intersects = raycaster.intersectObjects(
     group.children.filter((mesh) => {
       return mesh.geometry.type === "BoxGeometry";
     })
   );
 
+  // console.log(group.children);
+  group.children.forEach((mesh) => {
+    mesh.material.opacity = 0.4; //initialise 0.4 opacity for boxgeometry
+    // console.log(mesh); //console out each mesh inside the group.childresn
+  });
+
+  //popUpEl invible when not showing
+  gsap.set(popUpEl, {
+    display: "none",
+  });
+
+  //if intersecting
   for (let i = 0; i < intersects.length; i++) {
+    // console.log("detected");
     // intersects[i].object.material.color.set(0xff0000);
-    console.log("detected");
+    intersects[i].object.material.opacity = 1;
+    gsap.set(popUpEl, {
+      display: "block",
+    });
   }
   renderer.render(scene, camera);
 }
@@ -239,8 +258,9 @@ addEventListener("mousemove", (event) => {
   mouse.x = ((event.clientX - innerWidth / 2) / (innerWidth / 2)) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
   mouse.y = -(event.clientY / innerHeight) * 2 + 1;
 
-  // mouse.x = (event.clientX / innerWidth) * 2 - 1;
-  // mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-  // console.log(event.clientX);
-  // console.log(mouse.x, mouse.y);
+  // let the popup follow our mouse
+  gsap.set(popUpEl, {
+    x: event.clientX,
+    y: event.clientY,
+  });
 });
