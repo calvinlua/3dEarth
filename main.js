@@ -115,7 +115,8 @@ scene.add(stars);
 
 camera.position.z = 15;
 
-function createPoint(lat, long) {
+// putting {} inside the param function will not need to care about the order you put into the data
+function createBox({ lat, long, country, population }) {
   //can use raycaster in three.js to show some value on the sphere point
   const box = new THREE.Mesh(
     new THREE.BoxGeometry(0.2, 0.2, 0.8), //scale x , scale y , scale z
@@ -157,17 +158,45 @@ function createPoint(lat, long) {
     delay: Math.random(),
   });
 
+  box.country = country; //define country property
+  box.population = population; //define population of visitor
   // box.scale.z = 0; // scaling the box in z direction
 }
 
 // 1.3521° N, 103.8198° E singapore ( in degree)
 // 3.1319° N, 101.6841° E KL (in angle degree)
-createPoint(1.3521, 103.8198); // Singapore
-createPoint(3.1319, 101.6841); //KL
-createPoint(23.6345, -102.5528); //mexico 23.6345° N, 102.5528° W
-createPoint(-14.235, -51.9235); // Brazil 14.2350° S, 51.9253° W
-createPoint(39.9042, 116.4074); // Beijing 39.9042° N, 116.4074° E
+createBox({
+  lat: 1.3521,
+  long: 103.8198,
+  country: "Singapore",
+  population: "5.454 million",
+}); // Singapore
+createBox({
+  lat: 3.1319,
+  long: 101.6841,
+  country: "Kuala Lumpur",
+  population: "1.808 million",
+}); //KL
+createBox({
+  lat: 39.9042,
+  long: 116.4074,
+  country: "Beijing",
+  population: "21.54 million",
+}); // Beijing 39.9042° N, 116.4074° E
+createBox({
+  lat: 23.6345,
+  long: -102.5528,
+  country: "Mexico ",
+  population: "126.7 million",
+}); //mexico 23.6345° N, 102.5528° W
+createBox({
+  lat: -14.235,
+  long: -51.9235,
+  country: "Brazil",
+  population: "214.3 million",
+}); // Brazil 14.2350° S, 51.9253° W
 
+console.log(group.children);
 // point.position.z = earthRadius + 1; // because globe radius is 5 , inside it cant be seen
 
 sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of texture image to the sphere
@@ -178,8 +207,12 @@ const mouse = {
 }; // vector 2 pointer based on raycaster threejs
 
 const raycaster = new THREE.Raycaster();
+
 const popUpEl = document.querySelector("#popUpEl");
-console.log(popUpEl); // to check if we are select things
+const populationEl = document.querySelector("#populationEl");
+const populationValueEl = document.querySelector("#populationValueEl");
+
+console.log(populationValueEl); // to check if we are select things
 
 function animate() {
   requestAnimationFrame(animate);
@@ -236,12 +269,17 @@ function animate() {
 
   //if intersecting
   for (let i = 0; i < intersects.length; i++) {
+    const box = intersects[i].object;
+    console.log(box);
     // console.log("detected");
     // intersects[i].object.material.color.set(0xff0000);
-    intersects[i].object.material.opacity = 1;
+    box.material.opacity = 1;
     gsap.set(popUpEl, {
       display: "block",
     });
+
+    populationEl.innerHTML = box.country;
+    populationValueEl.innerHTML = box.population;
   }
   renderer.render(scene, camera);
 }
