@@ -64,7 +64,7 @@ const atmosphere = new THREE.Mesh(
   })
 );
 // console.log(sphere); //check if sphere working
-atmosphere.scale.set(1.15, 1.15, 1.15);
+atmosphere.scale.set(1.2, 1.2, 1.2);
 scene.add(atmosphere);
 
 //Three.js Group - to add a secondary spin effect
@@ -117,10 +117,10 @@ camera.position.z = 15;
 
 function createPoint(lat, long) {
   //can use raycaster in three.js to show some value on the sphere point
-  const point = new THREE.Mesh(
-    new THREE.BoxGeometry(0.1, 0.1, 0.8), //scale x , scale y , scale z
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(0.2, 0.2, 0.8), //scale x , scale y , scale z
     new THREE.MeshBasicMaterial({
-      color: "#ff0000",
+      color: "#3BF7FF",
     })
   );
 
@@ -135,16 +135,27 @@ function createPoint(lat, long) {
   const y = earthRadius * Math.sin(latitude);
   const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
 
-  point.position.x = x;
-  point.position.y = y;
-  point.position.z = z;
+  box.position.x = x;
+  box.position.y = y;
+  box.position.z = z;
 
-  point.lookAt(0, 0, 0); //perpendicular , boxgeometry always look at the center because sphere is default at 0,0,0
-  point.geometry.applyMatrix4(
+  box.lookAt(0, 0, 0); //perpendicular , boxgeometry always look at the center because sphere is default at 0,0,0
+  box.geometry.applyMatrix4(
     new THREE.Matrix4().makeTranslation(0, 0, -0.4) //translate object in 3d SPACE x,y,z , 0.8/2
-  ); //translate those points that are hiding inside the globe
+  ); //translate those boxs that are hiding inside the globe
 
-  group.add(point);
+  group.add(box);
+
+  gsap.to(box.scale, {
+    z: 1.4,
+    duration: 2, // 5 sec animation
+    yoyo: true,
+    repeat: -1, //repeat infinite times
+    ease: "linear",
+    delay: Math.random(),
+  });
+
+  // box.scale.z = 0; // scaling the box in z direction
 }
 
 // 1.3521° N, 103.8198° E singapore ( in degree)
@@ -162,10 +173,26 @@ sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of text
 const mouse = {
   x: undefined,
   y: undefined,
-};
+}; // vector 2 pointer based on raycaster threejs
+
+const raycaster = new THREE.Raycaster();
+console.log(raycaster);
+console.log(group.children); // can find what we need to detect from console.log(scene.children);
 
 function animate() {
   requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+
+  group.rotation.y += 0.002;
+  // avoid globe not loading waiting for mouse input
+  // if (mouse.x) {
+  //   gsap.to(group.rotation, {
+  //     x: -mouse.y * 1.8,
+  //     y: mouse.x * 1.8,
+  //     duration: 2,
+  //   });
+  // }
+
   //// for the 3D animated lines to travel from one point to another (from CHATGPT)
   // var now = Date.now();
   // var progress = (now - animationStartTime) / animationDuration;
@@ -182,29 +209,38 @@ function animate() {
   // );
   // line.geometry.attributes.position.needsUpdate = true;
 
-  renderer.render(scene, camera);
-  // sphere.rotation.y += 0.002;
-  // avoid globe not loading waiting for mouse input
-  if (mouse.x) {
-    gsap.to(group.rotation, {
-      x: -mouse.y * 1.8,
-      y: mouse.x * 1.8,
-      duration: 2,
-    });
-  }
+  //Raycaster rendering function
+  // update the picking ray with the camera and pointer position
+  raycaster.setFromCamera(mouse, camera);
 
-  //// for the 3D animated lines to travel from one point to another (from CHATGPT)
-  // // Stop animation when progress reaches 1
-  // if (progress >= 1) {
-  //   cancelAnimationFrame(animate);
-  // }
+  // calculate objects intersecting the picking ray
+  const intersects = raycaster.intersectObjects(
+    group.children.filter((mesh) => {
+      return mesh.geometry.type === "BoxGeometry";
+    })
+  );
+
+  for (let i = 0; i < intersects.length; i++) {
+    // intersects[i].object.material.color.set(0xff0000);
+    console.log("detected");
+  }
+  renderer.render(scene, camera);
 }
+
+//// for the 3D animated lines to travel from one point to another (from CHATGPT)
+// // Stop animation when progress reaches 1
+// if (progress >= 1) {
+//   cancelAnimationFrame(animate);
+// }
 
 animate();
 
-addEventListener("mousemove", () => {
-  mouse.x = (event.clientX / innerWidth) * 2 - 1;
+addEventListener("mousemove", (event) => {
+  mouse.x = ((event.clientX - innerWidth / 2) / (innerWidth / 2)) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
   mouse.y = -(event.clientY / innerHeight) * 2 + 1;
 
+  // mouse.x = (event.clientX / innerWidth) * 2 - 1;
+  // mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+  // console.log(event.clientX);
   // console.log(mouse.x, mouse.y);
 });
