@@ -238,7 +238,7 @@ function animate() {
 
   // Update sphere position based on animation progress along the curve
   var currentPosition = curve.getPointAt(progress);
-  sphere.position.copy(currentPosition);
+  group.position.copy(currentPosition);
 
   // // Update line position based on animation progress
   // var currentPosition = new THREE.Vector3()
