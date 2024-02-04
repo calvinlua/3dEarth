@@ -8,10 +8,7 @@ import gsap from "gsap";
 
 const canvasContainer = document.querySelector("#canvasContainer");
 
-// console.log(vertexShader); //check if custom vertexShader is working
-// console.log(fragmentShader);
 const scene = new THREE.Scene();
-// console.log(scene); // Check whether the import is done
 const camera = new THREE.PerspectiveCamera(
   75, //fov
   canvasContainer.offsetWidth / canvasContainer.offsetHeight, //aspect
@@ -30,8 +27,7 @@ renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 renderer.setPixelRatio(window.devicePixelRatio); // increase pixels as screen size increase
 // document.body.appendChild(renderer.domElement); //.domElement is a canvas where the renderer draws its output
 
-//create a sphere
-//create with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
+//create a sphere with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
 const earthRadius = 5;
 const sphere = new THREE.Mesh(
   new THREE.SphereGeometry(earthRadius, 50, 50),
@@ -51,7 +47,6 @@ const sphere = new THREE.Mesh(
     },
   })
 );
-// console.log(sphere); //check if sphere working
 
 // create outer 2nd atmosphere
 const atmosphere = new THREE.Mesh(
@@ -63,7 +58,6 @@ const atmosphere = new THREE.Mesh(
     side: THREE.BackSide,
   })
 );
-// console.log(sphere); //check if sphere working
 atmosphere.scale.set(1.2, 1.2, 1.2);
 scene.add(atmosphere);
 
@@ -95,23 +89,33 @@ const stars = new THREE.Points(starGeometry, starMaterial);
 // console.log(stars);
 scene.add(stars);
 
-//// for the 3D animated lines to travel from one point to another (from CHATGPT)
-// // Determine start and end points on the globe's surface
-// var startPoint = new THREE.Vector3(5, 0, 0); // Example start point
-// var endPoint = new THREE.Vector3(0, 5, 0); // Example end point
+//// for the 3D animated lines to travel from one point to another
 
-// // Create a line geometry between the start and end points
+// Determine start and end points on the globe's surface
+var startPoint = new THREE.Vector3(5, 0, earthRadius); // Example start point
+var endPoint = new THREE.Vector3(0, 5, earthRadius); // Example end point
+
+// Create a curved line using Bezier curve
+var curve = new THREE.QuadraticBezierCurve3(
+  startPoint,
+  new THREE.Vector3(0, 10, 0), // Control point for the curve
+  endPoint
+);
+
+// var points = curve.getPoints(50); // Number of points along the curve
+
+// Create a line geometry between the start and end points
 // var lineGeometry = new THREE.BufferGeometry().setFromPoints([
 //   startPoint,
 //   endPoint,
 // ]);
 // var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
 // var line = new THREE.Line(lineGeometry, lineMaterial);
-// scene.add(line);
+// group.add(line);
 
-// // Animate the line's vertices
-// var animationDuration = 5000; // in milliseconds
-// var animationStartTime = Date.now();
+// Animate the line's vertices with parameter
+var animationDuration = 5000; // in milliseconds
+var animationStartTime = Date.now();
 
 camera.position.z = 15;
 
@@ -218,20 +222,23 @@ function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 
-  group.rotation.y += 0.002;
+  // group.rotation.y += 0.002;
 
   // avoid globe not loading waiting for mouse input
-  // if (mouse.x) {
-  //   gsap.to(group.rotation, {
-  //     x: -mouse.y * 1.8,
-  //     y: mouse.x * 1.8,
-  //     duration: 2,
-  //   });
-  // }
+  if (mouse.x) {
+    gsap.to(group.rotation, {
+      x: -mouse.y * 1.8,
+      y: mouse.x * 1.8,
+      duration: 2,
+    });
+  }
 
-  //// for the 3D animated lines to travel from one point to another (from CHATGPT)
-  // var now = Date.now();
-  // var progress = (now - animationStartTime) / animationDuration;
+  var now = Date.now();
+  var progress = (now - animationStartTime) / animationDuration;
+
+  // Update sphere position based on animation progress along the curve
+  var currentPosition = curve.getPointAt(progress);
+  sphere.position.copy(currentPosition);
 
   // // Update line position based on animation progress
   // var currentPosition = new THREE.Vector3()
@@ -244,6 +251,11 @@ function animate() {
   //   currentPosition.z
   // );
   // line.geometry.attributes.position.needsUpdate = true;
+
+  // Stop animation when progress reaches 1
+  if (progress >= 1) {
+    cancelAnimationFrame(animate);
+  }
 
   //Raycaster rendering function
   // update the picking ray with the camera and pointer position
@@ -283,12 +295,6 @@ function animate() {
   }
   renderer.render(scene, camera);
 }
-
-//// for the 3D animated lines to travel from one point to another (from CHATGPT)
-// // Stop animation when progress reaches 1
-// if (progress >= 1) {
-//   cancelAnimationFrame(animate);
-// }
 
 animate();
 
