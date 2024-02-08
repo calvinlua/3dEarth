@@ -89,34 +89,6 @@ const stars = new THREE.Points(starGeometry, starMaterial);
 // console.log(stars);
 scene.add(stars);
 
-//// for the 3D animated lines to travel from one point to another
-
-// Determine start and end points on the globe's surface
-var startPoint = new THREE.Vector3(5, 0, earthRadius); // Example start point
-var endPoint = new THREE.Vector3(0, 5, earthRadius); // Example end point
-
-// Create a curved line using Bezier curve
-var curve = new THREE.QuadraticBezierCurve3(
-  startPoint,
-  new THREE.Vector3(0, 10, 0), // Control point for the curve
-  endPoint
-);
-
-// var points = curve.getPoints(50); // Number of points along the curve
-
-// Create a line geometry between the start and end points
-// var lineGeometry = new THREE.BufferGeometry().setFromPoints([
-//   startPoint,
-//   endPoint,
-// ]);
-// var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-// var line = new THREE.Line(lineGeometry, lineMaterial);
-// group.add(line);
-
-// Animate the line's vertices with parameter
-var animationDuration = 5000; // in milliseconds
-var animationStartTime = Date.now();
-
 camera.position.z = 15;
 
 // putting {} inside the param function will not need to care about the order you put into the data
@@ -166,6 +138,52 @@ function createBox({ lat, long, country, population }) {
   box.population = population; //define population of visitor
   // box.scale.z = 0; // scaling the box in z direction
 }
+function CoordinatesConvertToActualLocation(lat, long) {
+  //convert lat and long to actual location
+  //convert degree angle to radian
+  const latitude = (lat / 180) * Math.PI;
+  const longitude = (long / 180) * Math.PI;
+
+  // formula for the 3D space on longitude and latitude, the angle here is radian (latitude and longitude)
+  const x = earthRadius * Math.cos(latitude) * Math.sin(longitude);
+  const y = earthRadius * Math.sin(latitude);
+  const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
+
+  return { x, y, z };
+}
+
+var SingaporeLocation = CoordinatesConvertToActualLocation(1.3521, 103.8198);
+
+//// for the 3D animated lines to travel from one point to another
+// Determine start and end points on the globe's surface
+var startPoint = new THREE.Vector3(
+  SingaporeLocation.x,
+  SingaporeLocation.y,
+  earthRadius
+); // Example start point
+var endPoint = new THREE.Vector3(0, 1, earthRadius); // Example end point
+
+// Create a curved line using Bezier curve
+var curve = new THREE.QuadraticBezierCurve3(
+  startPoint,
+  new THREE.Vector3(0, 10, 0), // Control point for the curve
+  endPoint
+);
+// Create an empty array to store points along the curve
+var drawnPoints = [];
+
+// Number of points initially drawn
+var numDrawnPoints = 0;
+
+// Create line geometry from the points
+// var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
+var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+// var line = new THREE.Line(lineGeometry, lineMaterial);
+// group.add(line);
+
+// Animate the line's vertices with parameter
+var animationDuration = 5000; // in milliseconds
+var animationStartTime = Date.now();
 
 // 1.3521° N, 103.8198° E singapore ( in degree)
 // 3.1319° N, 101.6841° E KL (in angle degree)
@@ -217,45 +235,58 @@ const populationEl = document.querySelector("#populationEl");
 const populationValueEl = document.querySelector("#populationValueEl");
 
 console.log(populationValueEl); // to check if we are select things
-
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 
-  // group.rotation.y += 0.002;
+  group.rotation.y += 0.002;
 
-  // avoid globe not loading waiting for mouse input
-  if (mouse.x) {
-    gsap.to(group.rotation, {
-      x: -mouse.y * 1.8,
-      y: mouse.x * 1.8,
-      duration: 2,
+  // Stop animation if all points are drawn
+  if (numDrawnPoints >= 50) {
+    return;
+  } else {
+    // var progress = (now - animationStartTime) / animationDuration;
+
+    // Add a new point to the drawn points array
+    drawnPoints.push(curve.getPointAt(numDrawnPoints / 50));
+    sleep(10000).then(() => {
+      numDrawnPoints++;
     });
+
+    // var now = Date.now();
+    // var progress = (now - animationStartTime) / animationDuration;
+
+    // Update sphere position based on animation progress along the curve
+    // var currentPosition = curve.getPointAt(progress);
+    // line.position.copy(currentPosition);
+
+    // line.geometry.attributes.position.needsUpdate = true;
+
+    // Stop animation when progress reaches 1
+    // if (progress >= 1) {
+    //   cancelAnimationFrame(animate);
+    // }
   }
 
-  var now = Date.now();
-  var progress = (now - animationStartTime) / animationDuration;
+  // Update line geometry
+  var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
+  var line = new THREE.Line(lineGeometry, lineMaterial);
 
-  // Update sphere position based on animation progress along the curve
-  var currentPosition = curve.getPointAt(progress);
-  group.position.copy(currentPosition);
-
-  // // Update line position based on animation progress
-  // var currentPosition = new THREE.Vector3()
-  //   .copy(startPoint)
-  //   .lerp(endPoint, progress);
-  // line.geometry.attributes.position.setXYZ(
-  //   1,
-  //   currentPosition.x,
-  //   currentPosition.y,
-  //   currentPosition.z
-  // );
-  // line.geometry.attributes.position.needsUpdate = true;
-
-  // Stop animation when progress reaches 1
-  if (progress >= 1) {
-    cancelAnimationFrame(animate);
-  }
+  // Clear previous line and add the updated line to the scene
+  scene.remove(scene.getObjectByName("curveLine"));
+  line.name = "curveLine";
+  scene.add(line);
+  // avoid globe not loading waiting for mouse input
+  // if (mouse.x) {
+  //   gsap.to(group.rotation, {
+  //     x: -mouse.y * 1.8,
+  //     y: mouse.x * 1.8,
+  //     duration: 2,
+  //   });
+  // }
 
   //Raycaster rendering function
   // update the picking ray with the camera and pointer position
@@ -282,7 +313,7 @@ function animate() {
   //if intersecting
   for (let i = 0; i < intersects.length; i++) {
     const box = intersects[i].object;
-    console.log(box);
+    console.log(intersects[i]);
     // console.log("detected");
     // intersects[i].object.material.color.set(0xff0000);
     box.material.opacity = 1;
