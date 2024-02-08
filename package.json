@@ -13,6 +13,7 @@
     "vite-plugin-string": "^1.2.2"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.1.2",
     "gsap": "^3.12.4"
   }
 }

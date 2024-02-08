@@ -8,10 +8,7 @@ import gsap from "gsap";
 
 const canvasContainer = document.querySelector("#canvasContainer");
 
-// console.log(vertexShader); //check if custom vertexShader is working
-// console.log(fragmentShader);
 const scene = new THREE.Scene();
-// console.log(scene); // Check whether the import is done
 const camera = new THREE.PerspectiveCamera(
   75, //fov
   canvasContainer.offsetWidth / canvasContainer.offsetHeight, //aspect
@@ -30,8 +27,7 @@ renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 renderer.setPixelRatio(window.devicePixelRatio); // increase pixels as screen size increase
 // document.body.appendChild(renderer.domElement); //.domElement is a canvas where the renderer draws its output
 
-//create a sphere
-//create with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
+//create a sphere with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
 const earthRadius = 5;
 const sphere = new THREE.Mesh(
   new THREE.SphereGeometry(earthRadius, 50, 50),
@@ -51,7 +47,6 @@ const sphere = new THREE.Mesh(
     },
   })
 );
-// console.log(sphere); //check if sphere working
 
 // create outer 2nd atmosphere
 const atmosphere = new THREE.Mesh(
@@ -63,8 +58,7 @@ const atmosphere = new THREE.Mesh(
     side: THREE.BackSide,
   })
 );
-// console.log(sphere); //check if sphere working
-atmosphere.scale.set(1.15, 1.15, 1.15);
+atmosphere.scale.set(1.2, 1.2, 1.2);
 scene.add(atmosphere);
 
 //Three.js Group - to add a secondary spin effect
@@ -95,32 +89,17 @@ const stars = new THREE.Points(starGeometry, starMaterial);
 // console.log(stars);
 scene.add(stars);
 
-//// for the 3D animated lines to travel from one point to another (from CHATGPT)
-// // Determine start and end points on the globe's surface
-// var startPoint = new THREE.Vector3(5, 0, 0); // Example start point
-// var endPoint = new THREE.Vector3(0, 5, 0); // Example end point
-
-// // Create a line geometry between the start and end points
-// var lineGeometry = new THREE.BufferGeometry().setFromPoints([
-//   startPoint,
-//   endPoint,
-// ]);
-// var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-// var line = new THREE.Line(lineGeometry, lineMaterial);
-// scene.add(line);
-
-// // Animate the line's vertices
-// var animationDuration = 5000; // in milliseconds
-// var animationStartTime = Date.now();
-
 camera.position.z = 15;
 
-function createPoint(lat, long) {
+// putting {} inside the param function will not need to care about the order you put into the data
+function createBox({ lat, long, country, population }) {
   //can use raycaster in three.js to show some value on the sphere point
-  const point = new THREE.Mesh(
-    new THREE.BoxGeometry(0.1, 0.1, 0.8), //scale x , scale y , scale z
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(0.2, 0.2, 0.8), //scale x , scale y , scale z
     new THREE.MeshBasicMaterial({
-      color: "#ff0000",
+      color: "#3BF7FF",
+      opacity: 0.4, // need to make transparent property true only work
+      transparent: true,
     })
   );
 
@@ -135,26 +114,111 @@ function createPoint(lat, long) {
   const y = earthRadius * Math.sin(latitude);
   const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
 
-  point.position.x = x;
-  point.position.y = y;
-  point.position.z = z;
+  box.position.x = x;
+  box.position.y = y;
+  box.position.z = z;
 
-  point.lookAt(0, 0, 0); //perpendicular , boxgeometry always look at the center because sphere is default at 0,0,0
-  point.geometry.applyMatrix4(
+  box.lookAt(0, 0, 0); //perpendicular , boxgeometry always look at the center because sphere is default at 0,0,0
+  box.geometry.applyMatrix4(
     new THREE.Matrix4().makeTranslation(0, 0, -0.4) //translate object in 3d SPACE x,y,z , 0.8/2
-  ); //translate those points that are hiding inside the globe
+  ); //translate those boxs that are hiding inside the globe
 
-  group.add(point);
+  group.add(box);
+
+  gsap.to(box.scale, {
+    z: 1.4,
+    duration: 2, // 5 sec animation
+    yoyo: true,
+    repeat: -1, //repeat infinite times
+    ease: "linear",
+    delay: Math.random(),
+  });
+
+  box.country = country; //define country property
+  box.population = population; //define population of visitor
+  // box.scale.z = 0; // scaling the box in z direction
 }
+function CoordinatesConvertToActualLocation(lat, long) {
+  //convert lat and long to actual location
+  //convert degree angle to radian
+  const latitude = (lat / 180) * Math.PI;
+  const longitude = (long / 180) * Math.PI;
+
+  // formula for the 3D space on longitude and latitude, the angle here is radian (latitude and longitude)
+  const x = earthRadius * Math.cos(latitude) * Math.sin(longitude);
+  const y = earthRadius * Math.sin(latitude);
+  const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
+
+  return { x, y, z };
+}
+
+var SingaporeLocation = CoordinatesConvertToActualLocation(1.3521, 103.8198);
+
+//// for the 3D animated lines to travel from one point to another
+// Determine start and end points on the globe's surface
+var startPoint = new THREE.Vector3(
+  SingaporeLocation.x,
+  SingaporeLocation.y,
+  earthRadius
+); // Example start point
+var endPoint = new THREE.Vector3(0, 1, earthRadius); // Example end point
+
+// Create a curved line using Bezier curve
+var curve = new THREE.QuadraticBezierCurve3(
+  startPoint,
+  new THREE.Vector3(0, 10, 0), // Control point for the curve
+  endPoint
+);
+// Create an empty array to store points along the curve
+var drawnPoints = [];
+
+// Number of points initially drawn
+var numDrawnPoints = 0;
+
+// Create line geometry from the points
+// var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
+var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+// var line = new THREE.Line(lineGeometry, lineMaterial);
+// group.add(line);
+
+// Animate the line's vertices with parameter
+var animationDuration = 5000; // in milliseconds
+var animationStartTime = Date.now();
 
 // 1.3521° N, 103.8198° E singapore ( in degree)
 // 3.1319° N, 101.6841° E KL (in angle degree)
-createPoint(1.3521, 103.8198); // Singapore
-createPoint(3.1319, 101.6841); //KL
-createPoint(23.6345, -102.5528); //mexico 23.6345° N, 102.5528° W
-createPoint(-14.235, -51.9235); // Brazil 14.2350° S, 51.9253° W
-createPoint(39.9042, 116.4074); // Beijing 39.9042° N, 116.4074° E
+createBox({
+  lat: 1.3521,
+  long: 103.8198,
+  country: "Singapore",
+  population: "5.454 million",
+}); // Singapore
+createBox({
+  lat: 3.1319,
+  long: 101.6841,
+  country: "Kuala Lumpur",
+  population: "1.808 million",
+}); //KL
+createBox({
+  lat: 39.9042,
+  long: 116.4074,
+  country: "Beijing",
+  population: "21.54 million",
+}); // Beijing 39.9042° N, 116.4074° E
+createBox({
+  lat: 23.6345,
+  long: -102.5528,
+  country: "Mexico ",
+  population: "126.7 million",
+}); //mexico 23.6345° N, 102.5528° W
+createBox({
+  lat: -14.235,
+  long: -51.9235,
+  country: "Brazil",
+  population: "214.3 million",
+}); // Brazil 14.2350° S, 51.9253° W
 
+console.log(group.children);
 // point.position.z = earthRadius + 1; // because globe radius is 5 , inside it cant be seen
 
 sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of texture image to the sphere
@@ -162,49 +226,116 @@ sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of text
 const mouse = {
   x: undefined,
   y: undefined,
-};
+}; // vector 2 pointer based on raycaster threejs
 
+const raycaster = new THREE.Raycaster();
+
+const popUpEl = document.querySelector("#popUpEl");
+const populationEl = document.querySelector("#populationEl");
+const populationValueEl = document.querySelector("#populationValueEl");
+
+console.log(populationValueEl); // to check if we are select things
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 function animate() {
   requestAnimationFrame(animate);
-  //// for the 3D animated lines to travel from one point to another (from CHATGPT)
-  // var now = Date.now();
-  // var progress = (now - animationStartTime) / animationDuration;
-
-  // // Update line position based on animation progress
-  // var currentPosition = new THREE.Vector3()
-  //   .copy(startPoint)
-  //   .lerp(endPoint, progress);
-  // line.geometry.attributes.position.setXYZ(
-  //   1,
-  //   currentPosition.x,
-  //   currentPosition.y,
-  //   currentPosition.z
-  // );
-  // line.geometry.attributes.position.needsUpdate = true;
-
   renderer.render(scene, camera);
-  // sphere.rotation.y += 0.002;
-  // avoid globe not loading waiting for mouse input
-  if (mouse.x) {
-    gsap.to(group.rotation, {
-      x: -mouse.y * 1.8,
-      y: mouse.x * 1.8,
-      duration: 2,
+
+  group.rotation.y += 0.002;
+
+  // Stop animation if all points are drawn
+  if (numDrawnPoints >= 50) {
+    return;
+  } else {
+    // var progress = (now - animationStartTime) / animationDuration;
+
+    // Add a new point to the drawn points array
+    drawnPoints.push(curve.getPointAt(numDrawnPoints / 50));
+    sleep(10000).then(() => {
+      numDrawnPoints++;
     });
+
+    // var now = Date.now();
+    // var progress = (now - animationStartTime) / animationDuration;
+
+    // Update sphere position based on animation progress along the curve
+    // var currentPosition = curve.getPointAt(progress);
+    // line.position.copy(currentPosition);
+
+    // line.geometry.attributes.position.needsUpdate = true;
+
+    // Stop animation when progress reaches 1
+    // if (progress >= 1) {
+    //   cancelAnimationFrame(animate);
+    // }
   }
 
-  //// for the 3D animated lines to travel from one point to another (from CHATGPT)
-  // // Stop animation when progress reaches 1
-  // if (progress >= 1) {
-  //   cancelAnimationFrame(animate);
+  // Update line geometry
+  var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
+  var line = new THREE.Line(lineGeometry, lineMaterial);
+
+  // Clear previous line and add the updated line to the scene
+  scene.remove(scene.getObjectByName("curveLine"));
+  line.name = "curveLine";
+  scene.add(line);
+  // avoid globe not loading waiting for mouse input
+  // if (mouse.x) {
+  //   gsap.to(group.rotation, {
+  //     x: -mouse.y * 1.8,
+  //     y: mouse.x * 1.8,
+  //     duration: 2,
+  //   });
   // }
+
+  //Raycaster rendering function
+  // update the picking ray with the camera and pointer position
+  raycaster.setFromCamera(mouse, camera);
+
+  // calculate objects intersecting the picking ray , can console log out the filter to see what is it
+  const intersects = raycaster.intersectObjects(
+    group.children.filter((mesh) => {
+      return mesh.geometry.type === "BoxGeometry";
+    })
+  );
+
+  // console.log(group.children);
+  group.children.forEach((mesh) => {
+    mesh.material.opacity = 0.4; //initialise 0.4 opacity for boxgeometry
+    // console.log(mesh); //console out each mesh inside the group.childresn
+  });
+
+  //popUpEl invible when not showing
+  gsap.set(popUpEl, {
+    display: "none",
+  });
+
+  //if intersecting
+  for (let i = 0; i < intersects.length; i++) {
+    const box = intersects[i].object;
+    console.log(intersects[i]);
+    // console.log("detected");
+    // intersects[i].object.material.color.set(0xff0000);
+    box.material.opacity = 1;
+    gsap.set(popUpEl, {
+      display: "block",
+    });
+
+    populationEl.innerHTML = box.country;
+    populationValueEl.innerHTML = box.population;
+  }
+  renderer.render(scene, camera);
 }
 
 animate();
 
-addEventListener("mousemove", () => {
-  mouse.x = (event.clientX / innerWidth) * 2 - 1;
+addEventListener("mousemove", (event) => {
+  mouse.x = ((event.clientX - innerWidth / 2) / (innerWidth / 2)) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
   mouse.y = -(event.clientY / innerHeight) * 2 + 1;
 
-  // console.log(mouse.x, mouse.y);
+  // let the popup follow our mouse
+  gsap.set(popUpEl, {
+    x: event.clientX,
+    y: event.clientY,
+  });
 });

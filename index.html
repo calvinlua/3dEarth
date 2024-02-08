@@ -28,8 +28,27 @@
         font-family: "Lato", sans-serif;
       }
     </style>
+    <script>
+      window.va =
+        window.va ||
+        function () {
+          (window.vaq = window.vaq || []).push(arguments);
+        };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
+    <!-- fixed so that it does not push the elements down -->
+    <div id="popUpEl" class="bg-black bg-opacity-75 fixed px-5 py-3 rounded-lg">
+      <h2 class="text-white text-sm text-xs">
+        <span id="populationEl"></span>
+        <span>Visitor</span>
+      </h2>
+
+      <p id="populationValueEl" class="text-white font-bold text-lg">
+        VisitorValue
+      </p>
+    </div>
     <div class="flex h-screen bg-black">
       <div class="w-1/2 flex flex-col justify-center px-8">
         <div style="max-width: 500px" class="mx-auto">
