@@ -9,7 +9,8 @@ import gsap from "gsap";
 const canvasContainer = document.querySelector("#canvasContainer");
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
+
+let camera = new THREE.PerspectiveCamera(
   75, //fov
   canvasContainer.offsetWidth / canvasContainer.offsetHeight, //aspect
   0.1, //near
@@ -138,52 +139,53 @@ function createBox({ lat, long, country, population }) {
   box.population = population; //define population of visitor
   // box.scale.z = 0; // scaling the box in z direction
 }
-function CoordinatesConvertToActualLocation(lat, long) {
-  //convert lat and long to actual location
-  //convert degree angle to radian
-  const latitude = (lat / 180) * Math.PI;
-  const longitude = (long / 180) * Math.PI;
 
-  // formula for the 3D space on longitude and latitude, the angle here is radian (latitude and longitude)
-  const x = earthRadius * Math.cos(latitude) * Math.sin(longitude);
-  const y = earthRadius * Math.sin(latitude);
-  const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
+// function CoordinatesConvertToActualLocation(lat, long) {
+//   //convert lat and long to actual location
+//   //convert degree angle to radian
+//   const latitude = (lat / 180) * Math.PI;
+//   const longitude = (long / 180) * Math.PI;
 
-  return { x, y, z };
-}
+//   // formula for the 3D space on longitude and latitude, the angle here is radian (latitude and longitude)
+//   const x = earthRadius * Math.cos(latitude) * Math.sin(longitude);
+//   const y = earthRadius * Math.sin(latitude);
+//   const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
 
-var SingaporeLocation = CoordinatesConvertToActualLocation(1.3521, 103.8198);
+//   return { x, y, z };
+// }
 
-//// for the 3D animated lines to travel from one point to another
-// Determine start and end points on the globe's surface
-var startPoint = new THREE.Vector3(
-  SingaporeLocation.x,
-  SingaporeLocation.y,
-  earthRadius
-); // Example start point
-var endPoint = new THREE.Vector3(0, 1, earthRadius); // Example end point
+// var SingaporeLocation = CoordinatesConvertToActualLocation(1.3521, 103.8198);
 
-// Create a curved line using Bezier curve
-var curve = new THREE.QuadraticBezierCurve3(
-  startPoint,
-  new THREE.Vector3(0, 10, 0), // Control point for the curve
-  endPoint
-);
-// Create an empty array to store points along the curve
-var drawnPoints = [];
+// //// for the 3D animated lines to travel from one point to another
+// // Determine start and end points on the globe's surface
+// var startPoint = new THREE.Vector3(
+//   SingaporeLocation.x,
+//   SingaporeLocation.y,
+//   earthRadius
+// ); // Example start point
+// var endPoint = new THREE.Vector3(0, 1, earthRadius); // Example end point
 
-// Number of points initially drawn
-var numDrawnPoints = 0;
+// // Create a curved line using Bezier curve
+// var curve = new THREE.QuadraticBezierCurve3(
+//   startPoint,
+//   new THREE.Vector3(0, 10, 0), // Control point for the curve
+//   endPoint
+// );
+// // Create an empty array to store points along the curve
+// var drawnPoints = [];
 
-// Create line geometry from the points
-// var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
-var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-// var line = new THREE.Line(lineGeometry, lineMaterial);
-// group.add(line);
+// // Number of points initially drawn
+// var numDrawnPoints = 0;
 
-// Animate the line's vertices with parameter
-var animationDuration = 5000; // in milliseconds
-var animationStartTime = Date.now();
+// // Create line geometry from the points
+// // var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
+// var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+// // var line = new THREE.Line(lineGeometry, lineMaterial);
+// // group.add(line);
+
+// // Animate the line's vertices with parameter
+// var animationDuration = 5000; // in milliseconds
+// var animationStartTime = Date.now();
 
 // 1.3521° N, 103.8198° E singapore ( in degree)
 // 3.1319° N, 101.6841° E KL (in angle degree)
@@ -219,13 +221,20 @@ createBox({
 }); // Brazil 14.2350° S, 51.9253° W
 
 console.log(group.children);
-// point.position.z = earthRadius + 1; // because globe radius is 5 , inside it cant be seen
 
 sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of texture image to the sphere
+
+group.rotation.offset = {
+  x: 0,
+  y: 0,
+};
 
 const mouse = {
   x: undefined,
   y: undefined,
+  down: false,
+  xPrev: undefined,
+  yPrev: undefined,
 }; // vector 2 pointer based on raycaster threejs
 
 const raycaster = new THREE.Raycaster();
@@ -235,50 +244,51 @@ const populationEl = document.querySelector("#populationEl");
 const populationValueEl = document.querySelector("#populationValueEl");
 
 console.log(populationValueEl); // to check if we are select things
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// function sleep(ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 
-  group.rotation.y += 0.002;
+  // group.rotation.y += 0.002;
 
   // Stop animation if all points are drawn
-  if (numDrawnPoints >= 50) {
-    return;
-  } else {
-    // var progress = (now - animationStartTime) / animationDuration;
+  // if (numDrawnPoints >= 50) {
+  //   return;
+  // } else {
+  // var progress = (now - animationStartTime) / animationDuration;
 
-    // Add a new point to the drawn points array
-    drawnPoints.push(curve.getPointAt(numDrawnPoints / 50));
-    sleep(10000).then(() => {
-      numDrawnPoints++;
-    });
+  // Add a new point to the drawn points array
+  // drawnPoints.push(curve.getPointAt(numDrawnPoints / 50));
+  // sleep(10000).then(() => {
+  //   numDrawnPoints++;
+  // });
 
-    // var now = Date.now();
-    // var progress = (now - animationStartTime) / animationDuration;
+  // var now = Date.now();
+  // var progress = (now - animationStartTime) / animationDuration;
 
-    // Update sphere position based on animation progress along the curve
-    // var currentPosition = curve.getPointAt(progress);
-    // line.position.copy(currentPosition);
+  // Update sphere position based on animation progress along the curve
+  // var currentPosition = curve.getPointAt(progress);
+  // line.position.copy(currentPosition);
 
-    // line.geometry.attributes.position.needsUpdate = true;
+  // line.geometry.attributes.position.needsUpdate = true;
 
-    // Stop animation when progress reaches 1
-    // if (progress >= 1) {
-    //   cancelAnimationFrame(animate);
-    // }
-  }
+  // Stop animation when progress reaches 1
+  // if (progress >= 1) {
+  //   cancelAnimationFrame(animate);
+  // }
+  // }
 
   // Update line geometry
-  var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
-  var line = new THREE.Line(lineGeometry, lineMaterial);
+  // var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
+  // var line = new THREE.Line(lineGeometry, lineMaterial);
 
   // Clear previous line and add the updated line to the scene
-  scene.remove(scene.getObjectByName("curveLine"));
-  line.name = "curveLine";
-  scene.add(line);
+  // group.remove(group.getObjectByName("curveLine"));
+  // group.name = "curveLine";
+  // group.add(line);
+
   // avoid globe not loading waiting for mouse input
   // if (mouse.x) {
   //   gsap.to(group.rotation, {
@@ -298,7 +308,7 @@ function animate() {
       return mesh.geometry.type === "BoxGeometry";
     })
   );
-
+  // console.log(intersects);
   // console.log(group.children);
   group.children.forEach((mesh) => {
     mesh.material.opacity = 0.4; //initialise 0.4 opacity for boxgeometry
@@ -313,7 +323,7 @@ function animate() {
   //if intersecting
   for (let i = 0; i < intersects.length; i++) {
     const box = intersects[i].object;
-    console.log(intersects[i]);
+    // console.log(intersects[i]);
     // console.log("detected");
     // intersects[i].object.material.color.set(0xff0000);
     box.material.opacity = 1;
@@ -329,13 +339,132 @@ function animate() {
 
 animate();
 
+//add mouse click and drag
+canvasContainer.addEventListener("mousedown", ({ clientX, clientY }) => {
+  mouse.down = true;
+  mouse.xPrev = clientX;
+  mouse.yPrev = clientY;
+  // console.log(mouse.down);
+});
+
+//follow mouse move
 addEventListener("mousemove", (event) => {
-  mouse.x = ((event.clientX - innerWidth / 2) / (innerWidth / 2)) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
-  mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+  //for xl screen size
+  if (innerWidth >= 1200) {
+    mouse.x = ((event.clientX - innerWidth / 2) / (innerWidth / 2)) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
+    mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+    console.log(mouse.y);
+  } else {
+    //get the offset from canvasContainer
+    const offset = canvasContainer.getBoundingClientRect().top;
+    // console.log(offset);
+    mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
+    mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+    console.log(mouse.y);
+  }
 
   // let the popup follow our mouse
   gsap.set(popUpEl, {
     x: event.clientX,
     y: event.clientY,
   });
+
+  if (mouse.down) {
+    event.preventDefault();
+    // console.log("turn the earth");
+    const deltaX = event.clientX - mouse.xPrev;
+    const deltaY = event.clientY - mouse.yPrev;
+
+    group.rotation.offset.x += deltaY * 0.005;
+    group.rotation.offset.y += deltaX * 0.005;
+
+    gsap.to(group.rotation, {
+      x: group.rotation.offset.x,
+      y: group.rotation.offset.y,
+      duration: 2,
+    });
+
+    mouse.xPrev = event.clientX;
+    mouse.yPrev = event.clientY;
+    // console.log(deltaX);
+  }
+});
+
+//release mouse could happen outside canvasContainer
+addEventListener("mouseup", (event) => {
+  mouse.down = false;
+  // console.log(mouse.down);
+});
+
+//by default already window.addEventListener, no need to quote out
+addEventListener("resize", () => {
+  renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
+
+  camera = new THREE.PerspectiveCamera(
+    75, //fov
+    canvasContainer.offsetWidth / canvasContainer.offsetHeight, //aspect
+    0.1, //near
+    1000 //far
+  );
+
+  //has to recall so the camera is futher back because  THREE.PerspectiveCamera was call
+  camera.position.z = 15;
+
+  console.log("resize");
+});
+
+// mobile responsiveness
+//follow mouse move
+addEventListener("touchmove", (event) => {
+  // console.log(event);
+  event.clientX = event.touches[0].clientX;
+  event.clientY = event.touches[0].clientY;
+  // console.log(event.clientX);
+
+  const doesIntersect = raycaster.intersectObject(sphere);
+  console.log(doesIntersect);
+
+  if (doesIntersect === 0) return; //  just return nothing and dont call rest of the code ( code cleaner)
+
+
+  //if does intersect any mesh, then run the rest of the code
+  mouse.down = true;
+  //get the offset from canvasContainer
+  const offset = canvasContainer.getBoundingClientRect().top;
+  // console.log(offset);
+  mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
+  mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+  console.log(mouse.y);
+
+  // let the popup follow our mouse
+  gsap.set(popUpEl, {
+    x: event.clientX,
+    y: event.clientY,
+  });
+
+  if (mouse.down) {
+    event.preventDefault();
+    // console.log("turn the earth");
+    const deltaX = event.clientX - mouse.xPrev;
+    const deltaY = event.clientY - mouse.yPrev;
+
+    group.rotation.offset.x += deltaY * 0.005;
+    group.rotation.offset.y += deltaX * 0.005;
+
+    gsap.to(group.rotation, {
+      x: group.rotation.offset.x,
+      y: group.rotation.offset.y,
+      duration: 2,
+    });
+
+    mouse.xPrev = event.clientX;
+    mouse.yPrev = event.clientY;
+    // console.log(deltaX);
+  }
+});
+
+//release mouse could happen outside canvasContainer
+addEventListener("touchup", (event) => {
+  mouse.down = false;
+  // console.log(mouse.down);
 });
