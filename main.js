@@ -465,8 +465,8 @@ addEventListener(
         const deltaX = event.clientX - mouse.xPrev;
         const deltaY = event.clientY - mouse.yPrev;
 
-        group.rotation.offset.x += deltaY * 0.006;
-        group.rotation.offset.y += deltaX * 0.006;
+        group.rotation.offset.x += deltaY * 0.008;
+        group.rotation.offset.y += deltaX * 0.008;
 
         gsap.to(group.rotation, {
           x: group.rotation.offset.x,
