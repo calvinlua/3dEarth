@@ -413,12 +413,25 @@ addEventListener("resize", () => {
   // console.log("resize");
 });
 
+addEventListener("touchstart", (event) => {
+  // event.clientX = event.touches[0].clientX;
+  // event.clientY = event.touches[0].clientY;
+  const doesIntersect = raycaster.intersectObject(sphere);
+  console.log(doesIntersect);
+  if (doesIntersect.length > 0) {
+    window.blockMenuHeaderScroll = true;
+    console.log("touchstart scroll:" + window.blockMenuHeaderScroll);
+  }
+});
+
 // mobile responsiveness
 //follow mouse move
 addEventListener(
   "touchmove",
   (event) => {
     // console.log(event);
+    console.log("touchmove scroll:" + window.blockMenuHeaderScroll);
+
     event.clientX = event.touches[0].clientX;
     event.clientY = event.touches[0].clientY;
     // console.log(event.clientX);
@@ -445,18 +458,20 @@ addEventListener(
           y: event.clientY,
         });
 
-        // event.preventDefault();
+        if (window.blockMenuHeaderScroll) {
+          event.preventDefault();
+        }
         // console.log("turn the earth");
         const deltaX = event.clientX - mouse.xPrev;
         const deltaY = event.clientY - mouse.yPrev;
 
-        group.rotation.offset.x += deltaY * 0.005;
-        group.rotation.offset.y += deltaX * 0.005;
+        group.rotation.offset.x += deltaY * 0.006;
+        group.rotation.offset.y += deltaX * 0.006;
 
         gsap.to(group.rotation, {
           x: group.rotation.offset.x,
           y: group.rotation.offset.y,
-          duration: 5,
+          duration: 2,
         });
 
         mouse.xPrev = event.clientX;
@@ -471,5 +486,6 @@ addEventListener(
 //release mouse could happen outside canvasContainer
 addEventListener("touchend", (event) => {
   mouse.down = false;
-  // console.log("fuck you");
+  window.blockMenuHeaderScroll = false;
+  console.log("touchend scroll:" + window.blockMenuHeaderScroll);
 });
