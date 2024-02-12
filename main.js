@@ -410,7 +410,7 @@ addEventListener("resize", () => {
   //has to recall so the camera is futher back because  THREE.PerspectiveCamera was call
   camera.position.z = 15;
 
-  console.log("resize");
+  // console.log("resize");
 });
 
 // mobile responsiveness
@@ -422,9 +422,9 @@ addEventListener(
     event.clientX = event.touches[0].clientX;
     event.clientY = event.touches[0].clientY;
     // console.log(event.clientX);
-
+    // console.log("mousedown:" + mouse.down);
     const doesIntersect = raycaster.intersectObject(sphere);
-    console.log(doesIntersect);
+    // console.log(doesIntersect);
 
     if (doesIntersect.length > 0) {
       //if does intersect any mesh, then run the rest of the code
@@ -445,7 +445,7 @@ addEventListener(
           y: event.clientY,
         });
 
-        event.preventDefault();
+        // event.preventDefault();
         // console.log("turn the earth");
         const deltaX = event.clientX - mouse.xPrev;
         const deltaY = event.clientY - mouse.yPrev;
@@ -456,7 +456,7 @@ addEventListener(
         gsap.to(group.rotation, {
           x: group.rotation.offset.x,
           y: group.rotation.offset.y,
-          duration: 2,
+          duration: 5,
         });
 
         mouse.xPrev = event.clientX;
@@ -469,7 +469,7 @@ addEventListener(
 );
 
 //release mouse could happen outside canvasContainer
-addEventListener("touchup", (event) => {
+addEventListener("touchend", (event) => {
   mouse.down = false;
-  // console.log(mouse.down);
+  // console.log("fuck you");
 });
