@@ -413,11 +413,15 @@ addEventListener("resize", () => {
   // console.log("resize");
 });
 
-addEventListener("touchstart", (event) => {
-  // event.clientX = event.touches[0].clientX;
-  // event.clientY = event.touches[0].clientY;
+canvasContainer.addEventListener("touchstart", (event) => {
+  mouse.down = true;
+  event.clientX = event.touches[0].clientX;
+  event.clientY = event.touches[0].clientY;
+
+  mouse.xPrev = event.clientX;
+  mouse.yPrev = event.clientY;
   const doesIntersect = raycaster.intersectObject(sphere);
-  console.log(doesIntersect);
+  // console.log(doesIntersect);
   if (doesIntersect.length > 0) {
     window.blockMenuHeaderScroll = true;
     console.log("touchstart scroll:" + window.blockMenuHeaderScroll);
@@ -430,7 +434,7 @@ addEventListener(
   "touchmove",
   (event) => {
     // console.log(event);
-    console.log("touchmove scroll:" + window.blockMenuHeaderScroll);
+    // console.log("touchmove scroll:" + window.blockMenuHeaderScroll);
 
     event.clientX = event.touches[0].clientX;
     event.clientY = event.touches[0].clientY;
@@ -443,41 +447,43 @@ addEventListener(
       //if does intersect any mesh, then run the rest of the code
       mouse.down = true;
       console.log("mousedown:" + mouse.down);
+    }
+    if (mouse.down) {
+      //get the offset from canvasContainer
+      const offset = canvasContainer.getBoundingClientRect().top;
+      // console.log(offset);
+      mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
+      mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+      console.log(offset, mouse.x, mouse.y);
 
-      if (mouse.down) {
-        //get the offset from canvasContainer
-        const offset = canvasContainer.getBoundingClientRect().top;
-        // console.log(offset);
-        mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
-        mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-        console.log(mouse.y);
+      // let the popup follow our mouse
+      gsap.set(popUpEl, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      console.log(event.clientX, event.clientY);
 
-        // let the popup follow our mouse
-        gsap.set(popUpEl, {
-          x: event.clientX,
-          y: event.clientY,
-        });
-
-        if (window.blockMenuHeaderScroll) {
-          event.preventDefault();
-        }
-        // console.log("turn the earth");
-        const deltaX = event.clientX - mouse.xPrev;
-        const deltaY = event.clientY - mouse.yPrev;
-
-        group.rotation.offset.x += deltaY * 0.008;
-        group.rotation.offset.y += deltaX * 0.008;
-
-        gsap.to(group.rotation, {
-          x: group.rotation.offset.x,
-          y: group.rotation.offset.y,
-          duration: 2,
-        });
-
-        mouse.xPrev = event.clientX;
-        mouse.yPrev = event.clientY;
-        // console.log(deltaX);
+      if (window.blockMenuHeaderScroll) {
+        event.preventDefault();
+        console.log("blocked");
       }
+      // console.log("turn the earth");
+      const deltaX = event.clientX - mouse.xPrev;
+      const deltaY = event.clientY - mouse.yPrev;
+
+      console.log(mouse.xPrev, mouse.yPrev, deltaX, deltaY);
+      group.rotation.offset.x += deltaY * 0.008;
+      group.rotation.offset.y += deltaX * 0.008;
+
+      gsap.to(group.rotation, {
+        x: group.rotation.offset.x,
+        y: group.rotation.offset.y,
+        duration: 2,
+      });
+
+      mouse.xPrev = event.clientX;
+      mouse.yPrev = event.clientY;
+      // console.log(deltaX);
     }
   },
   { passive: false }
