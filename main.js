@@ -193,31 +193,31 @@ createBox({
   lat: 1.3521,
   long: 103.8198,
   country: "Singapore",
-  population: "5.454 million",
+  population: "50",
 }); // Singapore
 createBox({
   lat: 3.1319,
   long: 101.6841,
   country: "Kuala Lumpur",
-  population: "1.808 million",
+  population: "23",
 }); //KL
 createBox({
   lat: 39.9042,
   long: 116.4074,
   country: "Beijing",
-  population: "21.54 million",
+  population: "21",
 }); // Beijing 39.9042° N, 116.4074° E
 createBox({
   lat: 23.6345,
   long: -102.5528,
   country: "Mexico ",
-  population: "126.7 million",
+  population: "11",
 }); //mexico 23.6345° N, 102.5528° W
 createBox({
   lat: -14.235,
   long: -51.9235,
   country: "Brazil",
-  population: "214.3 million",
+  population: "22",
 }); // Brazil 14.2350° S, 51.9253° W
 
 console.log(group.children);
