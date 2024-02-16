@@ -420,12 +420,6 @@ canvasContainer.addEventListener("touchstart", (event) => {
 
   mouse.xPrev = event.clientX;
   mouse.yPrev = event.clientY;
-  const doesIntersect = raycaster.intersectObject(sphere);
-  // console.log(doesIntersect);
-  if (doesIntersect.length > 0) {
-    window.blockMenuHeaderScroll = true;
-    console.log("touchstart scroll:" + window.blockMenuHeaderScroll);
-  }
 });
 
 // mobile responsiveness
@@ -440,33 +434,41 @@ addEventListener(
     event.clientY = event.touches[0].clientY;
     // console.log(event.clientX);
     // console.log("mousedown:" + mouse.down);
-    const doesIntersect = raycaster.intersectObject(sphere);
-    // console.log(doesIntersect);
+    const doesIntersect = raycaster.intersectObjects([sphere]);
+    console.log(doesIntersect);
 
+    //get the offset from canvasContainer
+    const offset = canvasContainer.getBoundingClientRect().top;
+    // console.log(offset);
+    mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
+    mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+    console.log(offset, mouse.x, mouse.y);
+
+    // let the popup follow our mouse
+    gsap.set(popUpEl, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    // window.blockMenuHeaderScroll = true;
+
+    //for locking scroll when rotating the globe
     if (doesIntersect.length > 0) {
       //if does intersect any mesh, then run the rest of the code
-      mouse.down = true;
-      console.log("mousedown:" + mouse.down);
-    }
-    if (mouse.down) {
-      //get the offset from canvasContainer
-      const offset = canvasContainer.getBoundingClientRect().top;
-      // console.log(offset);
-      mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
-      mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-      console.log(offset, mouse.x, mouse.y);
+      window.blockMenuHeaderScroll = true;
+      console.log("touchmove scroll:" + window.blockMenuHeaderScroll);
 
-      // let the popup follow our mouse
-      gsap.set(popUpEl, {
-        x: event.clientX,
-        y: event.clientY,
-      });
+      // mouse.down = true;
+      // console.log("mousedown:" + mouse.down);
+    }
+
+    if (window.blockMenuHeaderScroll) {
+      event.preventDefault();
+      console.log("blocked");
+    }
+
+    if (mouse.down) {
       console.log(event.clientX, event.clientY);
 
-      if (window.blockMenuHeaderScroll) {
-        event.preventDefault();
-        console.log("blocked");
-      }
       // console.log("turn the earth");
       const deltaX = event.clientX - mouse.xPrev;
       const deltaY = event.clientY - mouse.yPrev;
