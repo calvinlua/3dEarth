@@ -251,7 +251,7 @@ function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 
-  // group.rotation.y += 0.002;
+  group.rotation.y += 0.002;
 
   // Stop animation if all points are drawn
   // if (numDrawnPoints >= 50) {
