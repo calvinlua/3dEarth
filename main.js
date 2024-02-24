@@ -5,6 +5,11 @@ import fragmentShader from "./shaders/fragment.glsl";
 import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
 import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 import gsap from "gsap";
+import posthog from "posthog-js";
+
+posthog.init("phc_NRzswrA9ri7puagtOLxF1kO9rtl296tLJWXLOpmDFgd", {
+  api_host: "https://app.posthog.com",
+});
 
 const canvasContainer = document.querySelector("#canvasContainer");
 
