@@ -7,6 +7,8 @@ import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 import gsap from "gsap";
 import posthog from "posthog-js";
 import ThreeGlobe from "three-globe";
+import { geoDistance, geoInterpolate } from "d3-geo";
+import { polar2Cartesian } from "./utils/coordTranslate";
 
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
@@ -57,72 +59,12 @@ function arcLines({ startLat, startLng, endLat, endLng }) {
   };
 }
 
-const KL2SG = arcLines({
-  startLat: 39.9042,
-  startLng: 116.4074,
-  endLat: 1.3521,
-  endLng: 103.8198,
-});
-
-
-
-function calcCurve({ alt, altAutoScale, startLat, startLng, endLat, endLng }) {
-  const getVec = ([lng, lat, alt]) => {
-    const { x, y, z } = polar2Cartesian(lat, lng, alt);
-    return new THREE.Vector3(x, y, z);
-  };
-
-  //calculate curve
-  const startPnt = [startLng, startLat];
-  const endPnt = [endLng, endLat];
-
-  let altitude = alt;
-  (altitude === null || altitude === undefined) &&
-    // by default set altitude proportional to the great-arc distance
-  (altitude = geoDistance(startPnt, endPnt) / 2 * altAutoScale);
-
-  if (altitude) {
-    const interpolate = geoInterpolate(startPnt, endPnt);
-    const [m1Pnt, m2Pnt] = [0.25, 0.75].map(t => [...interpolate(t), altitude * 1.5]);
-    const curve = new THREE.CubicBezierCurve3(...[startPnt, m1Pnt, m2Pnt, endPnt].map(getVec));
-
-    //const mPnt = [...interpolate(0.5), altitude * 2];
-    //curve = new THREE.QuadraticBezierCurve3(...[startPnt, mPnt, endPnt].map(getVec));
-
-    return curve;
-  } else {
-    // ground line
-    const alt = 0.001; // slightly above the ground to prevent occlusion
-    return calcSphereArc(...[[...startPnt, alt], [...endPnt, alt]].map(getVec));
-  }
-
-  //
-
-  function calcSphereArc(startVec, endVec) {
-    const angle = startVec.angleTo(endVec);
-    const getGreatCirclePoint = angle === 0
-      ? () => startVec.clone() // points exactly overlap
-      : t => new THREE.Vector3().addVectors(
-        startVec.clone().multiplyScalar(Math.sin( (1 - t) * angle)),
-        endVec.clone().multiplyScalar(Math.sin(t  * angle))
-      ).divideScalar(Math.sin(angle));
-
-    const sphereArc = new THREE.Curve();
-    sphereArc.getPoint = getGreatCirclePoint;
-
-    return sphereArc;
-  }
-}
-
-
-// const Globe = new ThreeGlobe()
-//   .globeImageUrl("/globe.jpg")
-//   .arcsData(KL2SG)
-//   .arcColor("color")
-//   .arcDashLength(0.4)
-//   .arcDashGap(4)
-//   .arcDashInitialGap(() => Math.random() * 5)
-//   .arcDashAnimateTime(1000);
+// const KL2SG = arcLines({
+//   startLat: 39.9042,
+//   startLng: 116.4074,
+//   endLat: 1.3521,
+//   endLng: 103.8198,
+// });
 
 // console.log(Globe);
 // scene.add(Globe);
@@ -190,6 +132,94 @@ const stars = new THREE.Points(starGeometry, starMaterial);
 scene.add(stars);
 
 camera.position.z = 15;
+
+function drawArcOnGlobe({
+  alt,
+  altAutoScale,
+  startLat,
+  startLng,
+  endLat,
+  endLng,
+}) {
+  const getVec = ([lng, lat, alt]) => {
+    const { x, y, z } = polar2Cartesian(lat, lng, alt);
+    return new THREE.Vector3(x, y, z);
+  };
+
+  // Calculate curve
+  const startPnt = [startLng, startLat];
+  const endPnt = [endLng, endLat];
+
+  let altitude = alt;
+  (altitude === null || altitude === undefined) &&
+    // By default set altitude proportional to the great-arc distance
+    (altitude = (geoDistance(startPnt, endPnt) / 2) * altAutoScale);
+
+  if (altitude) {
+    const interpolate = geoInterpolate(startPnt, endPnt);
+    const [m1Pnt, m2Pnt] = [0.25, 0.75].map((t) => [
+      ...interpolate(t),
+      altitude * 1.5,
+    ]);
+    const curvePoints = [startPnt, m1Pnt, m2Pnt, endPnt].map(getVec);
+    const curve = new THREE.CubicBezierCurve3(...curvePoints);
+
+    return curve;
+  } else {
+    // Ground line
+    const alt = 0.001; // Slightly above the ground to prevent occlusion
+    return calcSphereArc(
+      ...[
+        [...startPnt, alt],
+        [...endPnt, alt],
+      ].map(getVec)
+    );
+  }
+
+  function calcSphereArc(startVec, endVec) {
+    const angle = startVec.angleTo(endVec);
+    const getGreatCirclePoint =
+      angle === 0
+        ? () => startVec.clone() // Points exactly overlap
+        : (t) =>
+            new THREE.Vector3()
+              .addVectors(
+                startVec.clone().multiplyScalar(Math.sin((1 - t) * angle)),
+                endVec.clone().multiplyScalar(Math.sin(t * angle))
+              )
+              .divideScalar(Math.sin(angle));
+
+    const sphereArc = new THREE.Curve();
+    sphereArc.getPoint = getGreatCirclePoint;
+
+    return sphereArc;
+  }
+}
+
+const curve = drawArcOnGlobe({
+  alt: 0.5,
+  altAutoScale: 1,
+  startLat: 39.9042,
+  startLng: 116.4074,
+  endLat: 1.3521,
+  endLng: 103.8198,
+});
+
+const points = curve.getPoints(50);
+
+console.log(points);
+
+const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+console.log(geometry);
+
+const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+
+// Create the final object to add to the scene
+const curveObject = new THREE.Line(geometry, material);
+console.log(curveObject);
+
+group.add(curveObject);
 
 // putting {} inside the param function will not need to care about the order you put into the data
 function createBox({ lat, long, country, population }) {
