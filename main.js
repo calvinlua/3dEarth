@@ -6,6 +6,9 @@ import atmosphereVertexShader from "./shaders/atmosphereVertex.glsl";
 import atmosphereFragmentShader from "./shaders/atmosphereFragment.glsl";
 import gsap from "gsap";
 import posthog from "posthog-js";
+import ThreeGlobe from "three-globe";
+
+import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
 posthog.init("phc_NRzswrA9ri7puagtOLxF1kO9rtl296tLJWXLOpmDFgd", {
   api_host: "https://app.posthog.com",
@@ -32,6 +35,97 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 renderer.setPixelRatio(window.devicePixelRatio); // increase pixels as screen size increase
 // document.body.appendChild(renderer.domElement); //.domElement is a canvas where the renderer draws its output
+
+// // Gen random data
+// const N = 20;
+
+// const arcsData = [...Array(N).keys()].map(() => ({
+//   startLat: (Math.random() - 0.5) * 180,
+//   startLng: (Math.random() - 0.5) * 360,
+//   endLat: (Math.random() - 0.5) * 180,
+//   endLng: (Math.random() - 0.5) * 360,
+//   color: ["red", "white", "blue", "green"][Math.round(Math.random() * 3)],
+// }));
+
+function arcLines({ startLat, startLng, endLat, endLng }) {
+  const arcsData = {
+    startLat: (Math.random() - 0.5) * 180,
+    startLng: (Math.random() - 0.5) * 360,
+    endLat: (Math.random() - 0.5) * 180,
+    endLng: (Math.random() - 0.5) * 360,
+    color: ["red", "white", "blue", "green"][Math.round(Math.random() * 3)],
+  };
+}
+
+const KL2SG = arcLines({
+  startLat: 39.9042,
+  startLng: 116.4074,
+  endLat: 1.3521,
+  endLng: 103.8198,
+});
+
+
+
+function calcCurve({ alt, altAutoScale, startLat, startLng, endLat, endLng }) {
+  const getVec = ([lng, lat, alt]) => {
+    const { x, y, z } = polar2Cartesian(lat, lng, alt);
+    return new THREE.Vector3(x, y, z);
+  };
+
+  //calculate curve
+  const startPnt = [startLng, startLat];
+  const endPnt = [endLng, endLat];
+
+  let altitude = alt;
+  (altitude === null || altitude === undefined) &&
+    // by default set altitude proportional to the great-arc distance
+  (altitude = geoDistance(startPnt, endPnt) / 2 * altAutoScale);
+
+  if (altitude) {
+    const interpolate = geoInterpolate(startPnt, endPnt);
+    const [m1Pnt, m2Pnt] = [0.25, 0.75].map(t => [...interpolate(t), altitude * 1.5]);
+    const curve = new THREE.CubicBezierCurve3(...[startPnt, m1Pnt, m2Pnt, endPnt].map(getVec));
+
+    //const mPnt = [...interpolate(0.5), altitude * 2];
+    //curve = new THREE.QuadraticBezierCurve3(...[startPnt, mPnt, endPnt].map(getVec));
+
+    return curve;
+  } else {
+    // ground line
+    const alt = 0.001; // slightly above the ground to prevent occlusion
+    return calcSphereArc(...[[...startPnt, alt], [...endPnt, alt]].map(getVec));
+  }
+
+  //
+
+  function calcSphereArc(startVec, endVec) {
+    const angle = startVec.angleTo(endVec);
+    const getGreatCirclePoint = angle === 0
+      ? () => startVec.clone() // points exactly overlap
+      : t => new THREE.Vector3().addVectors(
+        startVec.clone().multiplyScalar(Math.sin( (1 - t) * angle)),
+        endVec.clone().multiplyScalar(Math.sin(t  * angle))
+      ).divideScalar(Math.sin(angle));
+
+    const sphereArc = new THREE.Curve();
+    sphereArc.getPoint = getGreatCirclePoint;
+
+    return sphereArc;
+  }
+}
+
+
+// const Globe = new ThreeGlobe()
+//   .globeImageUrl("/globe.jpg")
+//   .arcsData(KL2SG)
+//   .arcColor("color")
+//   .arcDashLength(0.4)
+//   .arcDashGap(4)
+//   .arcDashInitialGap(() => Math.random() * 5)
+//   .arcDashAnimateTime(1000);
+
+// console.log(Globe);
+// scene.add(Globe);
 
 //create a sphere with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
 const earthRadius = 5;
