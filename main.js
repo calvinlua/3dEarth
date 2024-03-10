@@ -9,7 +9,7 @@ import posthog from "posthog-js";
 import ThreeGlobe from "three-globe";
 import { geoDistance, geoInterpolate } from "d3-geo";
 import { polar2Cartesian } from "./utils/coordTranslate";
-
+import { Fog } from "three";
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
 posthog.init("phc_NRzswrA9ri7puagtOLxF1kO9rtl296tLJWXLOpmDFgd", {
@@ -19,7 +19,7 @@ posthog.init("phc_NRzswrA9ri7puagtOLxF1kO9rtl296tLJWXLOpmDFgd", {
 const canvasContainer = document.querySelector("#canvasContainer");
 
 const scene = new THREE.Scene();
-
+// scene.fog = new Fog(0x535ef3, 5, 10);
 let camera = new THREE.PerspectiveCamera(
   75, //fov
   canvasContainer.offsetWidth / canvasContainer.offsetHeight, //aspect
@@ -210,6 +210,7 @@ const points = curve.getPoints(50);
 console.log(points);
 
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
+// geometry.setDrawRange(0, 25); //set draw range
 
 console.log(geometry);
 
@@ -220,6 +221,20 @@ const curveObject = new THREE.Line(geometry, material);
 console.log(curveObject);
 
 group.add(curveObject);
+
+// Animate the drawing of the curve using GSAP
+const totalPoints = points.length;
+let drawRange = { value: 0 };
+
+gsap.to(drawRange, {
+  duration: 2, // Animation duration in seconds
+  delay: 1, // Delay before animation starts
+  ease: "sine.inOut", // Easing function
+  value: totalPoints, // Draw up to the total number of points
+  onUpdate: function () {
+    geometry.setDrawRange(0, Math.floor(drawRange.value));
+  },
+});
 
 // putting {} inside the param function will not need to care about the order you put into the data
 function createBox({ lat, long, country, population }) {
