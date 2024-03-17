@@ -207,37 +207,57 @@ const curve = drawArcOnGlobe({
 
 const points = curve.getPoints(50);
 
-console.log(points);
-
-// Slice the points array to get the segment from point 25 to point 50
-const segmentPoints = points.slice(25, 51);
-
-const geometry = new THREE.BufferGeometry().setFromPoints(segmentPoints);
-// geometry.setDrawRange(0, 25); //set draw range
-
-console.log(geometry);
-
+const totalPoints = points.length;
 const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
 
-// Create the final object to add to the scene
-const curveObject = new THREE.Line(geometry, material);
-console.log(curveObject);
+// Define the number of points in the line segment (line of length 5 points)
+const startpoint = 0;
+const endpoint = 10;
 
-group.add(curveObject);
+// Initialize an array to hold the points
+let showingpoint = [];
 
-// Animate the drawing of the curve using GSAP
-const totalPoints = segmentPoints.length;
-let drawRange = { value: 0 };
+// Generate initial points for the line segment
+for (let i = startpoint; i < endpoint; i++) {
+  showingpoint.push(points[i]); // Here, you can adjust the coordinates as needed
+}
 
-gsap.to(drawRange, {
-  duration: 2, // Animation duration in seconds
-  delay: 1, // Delay before animation starts
-  ease: "sine.inOut", // Easing function
-  value: totalPoints, // Draw up to the total number of points
-  onUpdate: function () {
-    geometry.setDrawRange(0, Math.floor(drawRange.value));
-  },
-});
+console.log(showingpoint);
+console.log(points);
+const geometry = new THREE.BufferGeometry().setFromPoints(showingpoint);
+
+console.log(geometry);
+// Create a line object
+const line = new THREE.Line(geometry, material);
+
+// Add the line object to the scene
+group.add(line);
+
+// Define the duration for adding each new point
+// const durationPerPoint = 1; // Adjust as neededss
+
+// Animate the addition of new points to the line segment
+for (let i = endpoint + 1; i < points.length; i++) {
+  let newPoint = points[i]; // Define the coordinates for the new point
+
+  gsap.to(showingpoint, {
+    duration: 10, // Animation duration in seconds
+    delay: 1, // Delay before animation starts
+    // value: totalPoints, // Draw up to the total number of points
+    onUpdate: function () {
+      // Update the geometry with the new points
+      line.geometry.setFromPoints(showingpoint);
+    },
+    onComplete: function () {
+      // Animation complete
+    },
+    ease: "sine.inOut", // Use linear easing for uniform movement
+  });
+  showingpoint.push(newPoint); // Add the new point to the points array
+  showingpoint = showingpoint.slice(1, 10); // take out the point from array
+  console.log(startpoint, i - endpoint);
+  console.log(showingpoint);
+}
 
 // putting {} inside the param function will not need to care about the order you put into the data
 function createBox({ lat, long, country, population }) {
