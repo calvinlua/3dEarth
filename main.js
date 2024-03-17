@@ -209,7 +209,10 @@ const points = curve.getPoints(50);
 
 console.log(points);
 
-const geometry = new THREE.BufferGeometry().setFromPoints(points);
+// Slice the points array to get the segment from point 25 to point 50
+const segmentPoints = points.slice(25, 51);
+
+const geometry = new THREE.BufferGeometry().setFromPoints(segmentPoints);
 // geometry.setDrawRange(0, 25); //set draw range
 
 console.log(geometry);
@@ -223,7 +226,7 @@ console.log(curveObject);
 group.add(curveObject);
 
 // Animate the drawing of the curve using GSAP
-const totalPoints = points.length;
+const totalPoints = segmentPoints.length;
 let drawRange = { value: 0 };
 
 gsap.to(drawRange, {
