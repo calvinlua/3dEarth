@@ -10,6 +10,7 @@ import ThreeGlobe from "three-globe";
 import { geoDistance, geoInterpolate } from "d3-geo";
 import { polar2Cartesian } from "./utils/coordTranslate";
 import { Fog } from "three";
+
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
 posthog.init("phc_NRzswrA9ri7puagtOLxF1kO9rtl296tLJWXLOpmDFgd", {
@@ -19,7 +20,7 @@ posthog.init("phc_NRzswrA9ri7puagtOLxF1kO9rtl296tLJWXLOpmDFgd", {
 const canvasContainer = document.querySelector("#canvasContainer");
 
 const scene = new THREE.Scene();
-// scene.fog = new Fog(0x535ef3, 5, 10);
+
 let camera = new THREE.PerspectiveCamera(
   75, //fov
   canvasContainer.offsetWidth / canvasContainer.offsetHeight, //aspect
@@ -207,7 +208,12 @@ const curve = drawArcOnGlobe({
 
 const points = curve.getPoints(50);
 
-const totalPoints = points.length;
+console.log(points);
+
+const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+console.log(geometry);
+
 const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
 
 // Define the number of points in the line segment (line of length 5 points)
@@ -216,48 +222,6 @@ const endpoint = 10;
 
 // Initialize an array to hold the points
 let showingpoint = [];
-
-// Generate initial points for the line segment
-for (let i = startpoint; i < endpoint; i++) {
-  showingpoint.push(points[i]); // Here, you can adjust the coordinates as needed
-}
-
-console.log(showingpoint);
-console.log(points);
-const geometry = new THREE.BufferGeometry().setFromPoints(showingpoint);
-
-console.log(geometry);
-// Create a line object
-const line = new THREE.Line(geometry, material);
-
-// Add the line object to the scene
-group.add(line);
-
-// Define the duration for adding each new point
-// const durationPerPoint = 1; // Adjust as neededss
-
-// Animate the addition of new points to the line segment
-for (let i = endpoint + 1; i < points.length; i++) {
-  let newPoint = points[i]; // Define the coordinates for the new point
-
-  gsap.to(showingpoint, {
-    duration: 10, // Animation duration in seconds
-    delay: 1, // Delay before animation starts
-    // value: totalPoints, // Draw up to the total number of points
-    onUpdate: function () {
-      // Update the geometry with the new points
-      line.geometry.setFromPoints(showingpoint);
-    },
-    onComplete: function () {
-      // Animation complete
-    },
-    ease: "sine.inOut", // Use linear easing for uniform movement
-  });
-  showingpoint.push(newPoint); // Add the new point to the points array
-  showingpoint = showingpoint.slice(1, 10); // take out the point from array
-  console.log(startpoint, i - endpoint);
-  console.log(showingpoint);
-}
 
 // putting {} inside the param function will not need to care about the order you put into the data
 function createBox({ lat, long, country, population }) {
