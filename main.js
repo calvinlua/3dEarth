@@ -215,10 +215,10 @@ const geometry = new THREE.BufferGeometry().setFromPoints(points);
 console.log(geometry);
 
 const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+// Create the final object to add to the scene
 
-// Define the number of points in the line segment (line of length 5 points)
-const startpoint = 0;
-const endpoint = 10;
+const curveObject = new THREE.Line(geometry, material);
+console.log(curveObject);
 
 group.add(curveObject);
 
@@ -233,6 +233,30 @@ gsap.to(drawRange, {
   value: totalPoints, // Draw up to the total number of points
   onUpdate: function () {
     geometry.setDrawRange(0, Math.floor(drawRange.value));
+  },
+  onComplete: function () {
+    console.log(`draw animation complete`);
+    let drawRange = { value: 0 };
+    // Animate slicing the points array point by point from point 0 to point 50
+    gsap.to(drawRange, {
+      duration: 2, // Animation duration in seconds
+      delay: 1, // Delay before animation starts
+      ease: "sine.inOut", // Easing function
+      value: totalPoints, // Draw up to the total number of points
+      onUpdate: function () {
+        // Update the line geometry with the new points
+        // geometry.setDrawRange(
+        //   points.slice(Math.floor(drawRange.value), totalPoints)
+        // );
+        console.log(drawRange);
+        geometry.setDrawRange(Math.floor(drawRange.value), totalPoints);
+      },
+      onComplete: function () {
+        // Animation complete
+        console.log("Points animation complete");
+      },
+    });
+    // on animation complete, run animation remove point by point of the line arc or trigger another function
   },
 });
 
