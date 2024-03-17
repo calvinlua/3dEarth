@@ -210,6 +210,7 @@ const points = curve.getPoints(50);
 console.log(points);
 
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
+// geometry.setDrawRange(0, 25); //set draw range
 
 console.log(geometry);
 
@@ -219,8 +220,21 @@ const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
 const startpoint = 0;
 const endpoint = 10;
 
-// Initialize an array to hold the points
-let showingpoint = [];
+group.add(curveObject);
+
+// Animate the drawing of the curve using GSAP
+const totalPoints = points.length;
+let drawRange = { value: 0 };
+
+gsap.to(drawRange, {
+  duration: 2, // Animation duration in seconds
+  delay: 1, // Delay before animation starts
+  ease: "sine.inOut", // Easing function
+  value: totalPoints, // Draw up to the total number of points
+  onUpdate: function () {
+    geometry.setDrawRange(0, Math.floor(drawRange.value));
+  },
+});
 
 // putting {} inside the param function will not need to care about the order you put into the data
 function createBox({ lat, long, country, population }) {
