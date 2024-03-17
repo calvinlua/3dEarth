@@ -9,7 +9,6 @@ import posthog from "posthog-js";
 import ThreeGlobe from "three-globe";
 import { geoDistance, geoInterpolate } from "d3-geo";
 import { polar2Cartesian } from "./utils/coordTranslate";
-import { Fog } from "three";
 
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
