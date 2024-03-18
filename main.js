@@ -38,17 +38,6 @@ renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 renderer.setPixelRatio(window.devicePixelRatio); // increase pixels as screen size increase
 // document.body.appendChild(renderer.domElement); //.domElement is a canvas where the renderer draws its output
 
-// // Gen random data
-// const N = 20;
-
-// const arcsData = [...Array(N).keys()].map(() => ({
-//   startLat: (Math.random() - 0.5) * 180,
-//   startLng: (Math.random() - 0.5) * 360,
-//   endLat: (Math.random() - 0.5) * 180,
-//   endLng: (Math.random() - 0.5) * 360,
-//   color: ["red", "white", "blue", "green"][Math.round(Math.random() * 3)],
-// }));
-
 function arcLines({ startLat, startLng, endLat, endLng }) {
   const arcsData = {
     startLat: (Math.random() - 0.5) * 180,
@@ -58,16 +47,6 @@ function arcLines({ startLat, startLng, endLat, endLng }) {
     color: ["red", "white", "blue", "green"][Math.round(Math.random() * 3)],
   };
 }
-
-// const KL2SG = arcLines({
-//   startLat: 39.9042,
-//   startLng: 116.4074,
-//   endLat: 1.3521,
-//   endLng: 103.8198,
-// });
-
-// console.log(Globe);
-// scene.add(Globe);
 
 //create a sphere with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
 const earthRadius = 5;
@@ -133,131 +112,157 @@ scene.add(stars);
 
 camera.position.z = 15;
 
-function drawArcOnGlobe({
-  alt,
-  altAutoScale,
-  startLat,
-  startLng,
-  endLat,
-  endLng,
+function performAnimations({
+  startLatitude,
+  startLongitude,
+  endLatitude,
+  endLongitude,
 }) {
-  const getVec = ([lng, lat, alt]) => {
-    const { x, y, z } = polar2Cartesian(lat, lng, alt);
-    return new THREE.Vector3(x, y, z);
-  };
+  function drawArcOnGlobe({
+    alt,
+    altAutoScale,
+    startLat,
+    startLng,
+    endLat,
+    endLng,
+  }) {
+    console.log(startLat, startLng, endLat, endLng);
+    const getVec = ([lng, lat, alt]) => {
+      const { x, y, z } = polar2Cartesian(lat, lng, alt);
+      return new THREE.Vector3(x, y, z);
+    };
 
-  // Calculate curve
-  const startPnt = [startLng, startLat];
-  const endPnt = [endLng, endLat];
+    // Calculate curve
+    const startPnt = [startLng, startLat];
+    const endPnt = [endLng, endLat];
 
-  let altitude = alt;
-  (altitude === null || altitude === undefined) &&
-    // By default set altitude proportional to the great-arc distance
-    (altitude = (geoDistance(startPnt, endPnt) / 2) * altAutoScale);
+    let altitude = alt;
+    (altitude === null || altitude === undefined) &&
+      // By default set altitude proportional to the great-arc distance
+      (altitude = (geoDistance(startPnt, endPnt) / 2) * altAutoScale);
 
-  if (altitude) {
-    const interpolate = geoInterpolate(startPnt, endPnt);
-    const [m1Pnt, m2Pnt] = [0.25, 0.75].map((t) => [
-      ...interpolate(t),
-      altitude * 1.5,
-    ]);
-    const curvePoints = [startPnt, m1Pnt, m2Pnt, endPnt].map(getVec);
-    const curve = new THREE.CubicBezierCurve3(...curvePoints);
+    if (altitude) {
+      const interpolate = geoInterpolate(startPnt, endPnt);
+      const [m1Pnt, m2Pnt] = [0.25, 0.75].map((t) => [
+        ...interpolate(t),
+        altitude * 1.5,
+      ]);
+      const curvePoints = [startPnt, m1Pnt, m2Pnt, endPnt].map(getVec);
+      const curve = new THREE.CubicBezierCurve3(...curvePoints);
 
-    return curve;
-  } else {
-    // Ground line
-    const alt = 0.001; // Slightly above the ground to prevent occlusion
-    return calcSphereArc(
-      ...[
-        [...startPnt, alt],
-        [...endPnt, alt],
-      ].map(getVec)
-    );
+      return curve;
+    } else {
+      // Ground line
+      const alt = 0.001; // Slightly above the ground to prevent occlusion
+      return calcSphereArc(
+        ...[
+          [...startPnt, alt],
+          [...endPnt, alt],
+        ].map(getVec)
+      );
+    }
+
+    function calcSphereArc(startVec, endVec) {
+      const angle = startVec.angleTo(endVec);
+      const getGreatCirclePoint =
+        angle === 0
+          ? () => startVec.clone() // Points exactly overlap
+          : (t) =>
+              new THREE.Vector3()
+                .addVectors(
+                  startVec.clone().multiplyScalar(Math.sin((1 - t) * angle)),
+                  endVec.clone().multiplyScalar(Math.sin(t * angle))
+                )
+                .divideScalar(Math.sin(angle));
+
+      const sphereArc = new THREE.Curve();
+      sphereArc.getPoint = getGreatCirclePoint;
+
+      return sphereArc;
+    }
   }
 
-  function calcSphereArc(startVec, endVec) {
-    const angle = startVec.angleTo(endVec);
-    const getGreatCirclePoint =
-      angle === 0
-        ? () => startVec.clone() // Points exactly overlap
-        : (t) =>
-            new THREE.Vector3()
-              .addVectors(
-                startVec.clone().multiplyScalar(Math.sin((1 - t) * angle)),
-                endVec.clone().multiplyScalar(Math.sin(t * angle))
-              )
-              .divideScalar(Math.sin(angle));
+  let curve = drawArcOnGlobe({
+    alt: 0.5,
+    altAutoScale: 1,
+    startLat: startLatitude, //39.9042
+    startLng: startLongitude, //116.4074
+    endLat: endLatitude, //1.3521
+    endLng: endLongitude, //103.8198
+  });
 
-    const sphereArc = new THREE.Curve();
-    sphereArc.getPoint = getGreatCirclePoint;
+  const points = curve.getPoints(50);
 
-    return sphereArc;
-  }
+  console.log(points);
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  // geometry.setDrawRange(0, 25); //set draw range
+
+  console.log(geometry);
+
+  const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+  // Create the final object to add to the scene
+
+  const curveObject = new THREE.Line(geometry, material);
+  console.log(curveObject);
+
+  geometry.setDrawRange(0, 0); //initialise the curveObject as invisible
+  group.add(curveObject);
+
+  // Animate the drawing of the curve using GSAP
+  const totalPoints = points.length;
+  let drawRange = { value: 0 };
+
+  gsap.to(drawRange, {
+    duration: 2, // Animation duration in seconds
+    delay: 1, // Delay before animation starts
+    ease: "sine.inOut", // Easing function
+    value: totalPoints, // Draw up to the total number of points
+    onUpdate: function () {
+      geometry.setDrawRange(0, Math.floor(drawRange.value));
+    },
+    onComplete: function () {
+      console.log(`draw animation complete`);
+      let drawRange = { value: 0 };
+      // Animate slicing the points array point by point from point 0 to point 50
+      gsap.to(drawRange, {
+        duration: 2, // Animation duration in seconds
+        delay: 1, // Delay before animation starts
+        ease: "sine.inOut", // Easing function
+        value: totalPoints, // Draw up to the total number of points
+        onUpdate: function () {
+          // Update the line geometry with the new points
+          // geometry.setDrawRange(
+          //   points.slice(Math.floor(drawRange.value), totalPoints)
+          // );
+          // console.log(drawRange);
+          geometry.setDrawRange(Math.floor(drawRange.value), totalPoints);
+        },
+        onComplete: function () {
+          // Animation complete
+          console.log("Points animation complete");
+          // Call the function again after a delay to repeat the animations
+          setTimeout(
+            performAnimations({
+              startLatitude: startLatitude,
+              startLongitude: startLongitude,
+              endLatitude: endLatitude,
+              endLongitude: endLongitude,
+            }),
+            5000
+          ); // Adjust the delay as needed
+          console.log("repeat animation triggered");
+        },
+      });
+      // on animation complete, run animation remove point by point of the line arc or trigger another function
+    },
+  });
 }
-
-const curve = drawArcOnGlobe({
-  alt: 0.5,
-  altAutoScale: 1,
-  startLat: 39.9042,
-  startLng: 116.4074,
-  endLat: 1.3521,
-  endLng: 103.8198,
-});
-
-const points = curve.getPoints(50);
-
-console.log(points);
-
-const geometry = new THREE.BufferGeometry().setFromPoints(points);
-// geometry.setDrawRange(0, 25); //set draw range
-
-console.log(geometry);
-
-const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-// Create the final object to add to the scene
-
-const curveObject = new THREE.Line(geometry, material);
-console.log(curveObject);
-
-group.add(curveObject);
-
-// Animate the drawing of the curve using GSAP
-const totalPoints = points.length;
-let drawRange = { value: 0 };
-
-gsap.to(drawRange, {
-  duration: 2, // Animation duration in seconds
-  delay: 1, // Delay before animation starts
-  ease: "sine.inOut", // Easing function
-  value: totalPoints, // Draw up to the total number of points
-  onUpdate: function () {
-    geometry.setDrawRange(0, Math.floor(drawRange.value));
-  },
-  onComplete: function () {
-    console.log(`draw animation complete`);
-    let drawRange = { value: 0 };
-    // Animate slicing the points array point by point from point 0 to point 50
-    gsap.to(drawRange, {
-      duration: 2, // Animation duration in seconds
-      delay: 1, // Delay before animation starts
-      ease: "sine.inOut", // Easing function
-      value: totalPoints, // Draw up to the total number of points
-      onUpdate: function () {
-        // Update the line geometry with the new points
-        // geometry.setDrawRange(
-        //   points.slice(Math.floor(drawRange.value), totalPoints)
-        // );
-        console.log(drawRange);
-        geometry.setDrawRange(Math.floor(drawRange.value), totalPoints);
-      },
-      onComplete: function () {
-        // Animation complete
-        console.log("Points animation complete");
-      },
-    });
-    // on animation complete, run animation remove point by point of the line arc or trigger another function
-  },
+performAnimations({
+  startLatitude: 39.9042,
+  startLongitude: 116.4074,
+  endLatitude: 1.3521,
+  endLongitude: 103.8198,
 });
 
 // putting {} inside the param function will not need to care about the order you put into the data
@@ -308,55 +313,6 @@ function createBox({ lat, long, country, population }) {
   // box.scale.z = 0; // scaling the box in z direction
 }
 
-// function CoordinatesConvertToActualLocation(lat, long) {
-//   //convert lat and long to actual location
-//   //convert degree angle to radian
-//   const latitude = (lat / 180) * Math.PI;
-//   const longitude = (long / 180) * Math.PI;
-
-//   // formula for the 3D space on longitude and latitude, the angle here is radian (latitude and longitude)
-//   const x = earthRadius * Math.cos(latitude) * Math.sin(longitude);
-//   const y = earthRadius * Math.sin(latitude);
-//   const z = earthRadius * Math.cos(latitude) * Math.cos(longitude);
-
-//   return { x, y, z };
-// }
-
-// var SingaporeLocation = CoordinatesConvertToActualLocation(1.3521, 103.8198);
-
-// //// for the 3D animated lines to travel from one point to another
-// // Determine start and end points on the globe's surface
-// var startPoint = new THREE.Vector3(
-//   SingaporeLocation.x,
-//   SingaporeLocation.y,
-//   earthRadius
-// ); // Example start point
-// var endPoint = new THREE.Vector3(0, 1, earthRadius); // Example end point
-
-// // Create a curved line using Bezier curve
-// var curve = new THREE.QuadraticBezierCurve3(
-//   startPoint,
-//   new THREE.Vector3(0, 10, 0), // Control point for the curve
-//   endPoint
-// );
-// // Create an empty array to store points along the curve
-// var drawnPoints = [];
-
-// // Number of points initially drawn
-// var numDrawnPoints = 0;
-
-// // Create line geometry from the points
-// // var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
-// var lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-// // var line = new THREE.Line(lineGeometry, lineMaterial);
-// // group.add(line);
-
-// // Animate the line's vertices with parameter
-// var animationDuration = 5000; // in milliseconds
-// var animationStartTime = Date.now();
-
-// 1.3521° N, 103.8198° E singapore ( in degree)
-// 3.1319° N, 101.6841° E KL (in angle degree)
 createBox({
   lat: 1.3521,
   long: 103.8198,
@@ -421,51 +377,6 @@ function animate() {
 
   group.rotation.y += 0.002;
 
-  // Stop animation if all points are drawn
-  // if (numDrawnPoints >= 50) {
-  //   return;
-  // } else {
-  // var progress = (now - animationStartTime) / animationDuration;
-
-  // Add a new point to the drawn points array
-  // drawnPoints.push(curve.getPointAt(numDrawnPoints / 50));
-  // sleep(10000).then(() => {
-  //   numDrawnPoints++;
-  // });
-
-  // var now = Date.now();
-  // var progress = (now - animationStartTime) / animationDuration;
-
-  // Update sphere position based on animation progress along the curve
-  // var currentPosition = curve.getPointAt(progress);
-  // line.position.copy(currentPosition);
-
-  // line.geometry.attributes.position.needsUpdate = true;
-
-  // Stop animation when progress reaches 1
-  // if (progress >= 1) {
-  //   cancelAnimationFrame(animate);
-  // }
-  // }
-
-  // Update line geometry
-  // var lineGeometry = new THREE.BufferGeometry().setFromPoints(drawnPoints);
-  // var line = new THREE.Line(lineGeometry, lineMaterial);
-
-  // Clear previous line and add the updated line to the scene
-  // group.remove(group.getObjectByName("curveLine"));
-  // group.name = "curveLine";
-  // group.add(line);
-
-  // avoid globe not loading waiting for mouse input
-  // if (mouse.x) {
-  //   gsap.to(group.rotation, {
-  //     x: -mouse.y * 1.8,
-  //     y: mouse.x * 1.8,
-  //     duration: 2,
-  //   });
-  // }
-
   //Raycaster rendering function
   // update the picking ray with the camera and pointer position
   raycaster.setFromCamera(mouse, camera);
@@ -521,14 +432,14 @@ addEventListener("mousemove", (event) => {
   if (innerWidth >= 1200) {
     mouse.x = ((event.clientX - innerWidth / 2) / (innerWidth / 2)) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
     mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-    console.log(mouse.y);
+    // console.log(mouse.y);
   } else {
     //get the offset from canvasContainer
     const offset = canvasContainer.getBoundingClientRect().top;
     // console.log(offset);
     mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
     mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-    console.log(mouse.y);
+    // console.log(mouse.y);
   }
 
   // let the popup follow our mouse
