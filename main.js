@@ -182,6 +182,10 @@ function performAnimations({
     }
   }
 
+  // let startLatitude = 39.904;
+  // let startLongitude = 116.4074;
+  // let endLatitude = 1.3521;
+  // let endLongitude = 103.8198;
   let curve = drawArcOnGlobe({
     alt: 0.5,
     altAutoScale: 1,
@@ -190,36 +194,66 @@ function performAnimations({
     endLat: endLatitude, //1.3521
     endLng: endLongitude, //103.8198
   });
-
+  // const nMax = tubeGeometry.attributes.position.count;
   const points = curve.getPoints(50);
 
   console.log(points);
 
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  // geometry.setDrawRange(0, 25); //set draw range
+  // Define the number of segments for the tube
+  const tubularSegments = 50; // Adjust as needed
+  const radialSegments = 8;
+  const radius = 0.01; // Adjust as needed
 
-  console.log(geometry);
+  // Create a tube geometry using the cubic Bezier curve
+  const tubeGeometry = new THREE.TubeGeometry(
+    curve,
+    tubularSegments,
+    radius,
+    radialSegments,
+    false
+  );
 
-  const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-  // Create the final object to add to the scene
+  // Count the faces
+  console.log(`no. vertices:${tubeGeometry.index.count}`); // total vertices or points in the geometry
+  const faces = tubeGeometry.index.count / 3; // Each face is composed of three vertices assumed it is triangle
+  console.log(`no. faces:${faces}`); //total faces
 
-  const curveObject = new THREE.Line(geometry, material);
-  console.log(curveObject);
+  function checkFacesIsTriangle(geometry) {
+    //geometry must be composed of vector3
+    if (geometry.index.count % 3 == 0) {
+      console.log(
+        `It is a geometry composed of triangle with ${
+          geometry.index.count
+        } vertices and ${geometry.index.count / 3} faces`
+      );
+    } else {
+      console.log(" it is a geometry composed by other shapes than triangle");
+    }
+  }
+  checkFacesIsTriangle(tubeGeometry);
 
-  geometry.setDrawRange(0, 0); //initialise the curveObject as invisible
-  group.add(curveObject);
+  console.log(tubeGeometry);
+
+  const tubeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+  // Create a mesh using the tube geometry and material
+  const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
+  // tubeGeometry.setDrawRange(0, tubeGeometry.index.count);
+  tubeGeometry.setDrawRange(0, 0);
+  // Add the tube mesh to the scene
+  group.add(tubeMesh);
 
   // Animate the drawing of the curve using GSAP
-  const totalPoints = points.length;
+  // const totalPoints = points.length;
   let drawRange = { value: 0 };
-
+  const totalPoints = tubeGeometry.index.count;
   gsap.to(drawRange, {
     duration: 2, // Animation duration in seconds
     delay: 1, // Delay before animation starts
     ease: "sine.inOut", // Easing function
     value: totalPoints, // Draw up to the total number of points
     onUpdate: function () {
-      geometry.setDrawRange(0, Math.floor(drawRange.value));
+      tubeMesh.geometry.setDrawRange(0, Math.floor(drawRange.value));
     },
     onComplete: function () {
       console.log(`draw animation complete`);
@@ -236,7 +270,10 @@ function performAnimations({
           //   points.slice(Math.floor(drawRange.value), totalPoints)
           // );
           // console.log(drawRange);
-          geometry.setDrawRange(Math.floor(drawRange.value), totalPoints);
+          tubeMesh.geometry.setDrawRange(
+            Math.floor(drawRange.value),
+            totalPoints
+          );
         },
         onComplete: function () {
           // Animation complete
@@ -384,7 +421,7 @@ function animate() {
   // calculate objects intersecting the picking ray , can console log out the filter to see what is it
   const intersects = raycaster.intersectObjects(
     group.children.filter((mesh) => {
-      return mesh.geometry.type === "BoxGeometry";
+      return mesh.geometry.type === "TubeGeometry";
     })
   );
   // console.log(intersects);
