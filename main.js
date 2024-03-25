@@ -194,15 +194,11 @@ function performAnimations({
     endLat: endLatitude, //1.3521
     endLng: endLongitude, //103.8198
   });
-  // const nMax = tubeGeometry.attributes.position.count;
-  const points = curve.getPoints(50);
-
-  console.log(points);
 
   // Define the number of segments for the tube
   const tubularSegments = 50; // Adjust as needed
-  const radialSegments = 8;
-  const radius = 0.01; // Adjust as needed
+  const radialSegments = 9;
+  const radius = 0.02; // Adjust as needed
 
   // Create a tube geometry using the cubic Bezier curve
   const tubeGeometry = new THREE.TubeGeometry(
@@ -244,9 +240,10 @@ function performAnimations({
   group.add(tubeMesh);
 
   // Animate the drawing of the curve using GSAP
-  // const totalPoints = points.length;
   let drawRange = { value: 0 };
   const totalPoints = tubeGeometry.index.count;
+
+  console.log(`drawing start from"${drawRange.value} to ${totalPoints}`);
   gsap.to(drawRange, {
     duration: 2, // Animation duration in seconds
     delay: 1, // Delay before animation starts
@@ -257,7 +254,8 @@ function performAnimations({
     },
     onComplete: function () {
       console.log(`draw animation complete`);
-      let drawRange = { value: 0 };
+      drawRange = { value: 0 }; //reinitialize drawRange
+      console.log(`erasing start from"${drawRange.value} to ${totalPoints}`);
       // Animate slicing the points array point by point from point 0 to point 50
       gsap.to(drawRange, {
         duration: 2, // Animation duration in seconds
@@ -265,13 +263,8 @@ function performAnimations({
         ease: "sine.inOut", // Easing function
         value: totalPoints, // Draw up to the total number of points
         onUpdate: function () {
-          // Update the line geometry with the new points
-          // geometry.setDrawRange(
-          //   points.slice(Math.floor(drawRange.value), totalPoints)
-          // );
-          // console.log(drawRange);
           tubeMesh.geometry.setDrawRange(
-            Math.floor(drawRange.value),
+            Math.floor(drawRange.value) * 3,
             totalPoints
           );
         },
