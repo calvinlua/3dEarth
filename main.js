@@ -107,12 +107,11 @@ starGeometry.setAttribute(
 );
 
 const stars = new THREE.Points(starGeometry, starMaterial);
-// console.log(stars);
 scene.add(stars);
 
 camera.position.z = 15;
 
-function performAnimations({
+function performLineAnimations({
   startLatitude,
   startLongitude,
   endLatitude,
@@ -198,7 +197,7 @@ function performAnimations({
   // Define the number of segments for the tube
   const tubularSegments = 50; // Adjust as needed
   const radialSegments = 9;
-  const radius = 0.02; // Adjust as needed
+  const radius = 0.01; // Adjust as needed
 
   // Create a tube geometry using the cubic Bezier curve
   const tubeGeometry = new THREE.TubeGeometry(
@@ -239,6 +238,68 @@ function performAnimations({
   // Add the tube mesh to the scene
   group.add(tubeMesh);
 
+  //posthog api
+  const token = "phx_whu07pSaZvpRWi9ISVky6y2ZCHeIwveM5NyBdKYf26a";
+  fetch(
+    "https://app.posthog.com/api/projects/55183/session_recordings/?limit=1",
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return res.json();
+    })
+
+    .then((data) => {
+      console.log(data);
+      console.log(data.results[0].start_time);
+
+      // Extracting data
+      var startTime = data.results[0].start_time;
+      var geoipLatitude = data.results[0].person.properties["$geoip_latitude"];
+      var geoipLongitude =
+        data.results[0].person.properties["$geoip_longitude"];
+      var os = data.results[0].person.properties["$os"];
+      var browser = data.results[0].person.properties["$browser"];
+      var deviceType = data.results[0].person.properties["$device_type"];
+      var geoipCityName = data.results[0].person.properties["$geoip_city_name"];
+      var geoipCountryCode =
+        data.results[0].person.properties["$geoip_country_code"];
+      var osVersion = data.results[0].person.properties["$os_version"];
+      var initialReferrer =
+        data.results[0].person.properties["$initial_referrer"];
+      var geoipContinentName =
+        data.results[0].person.properties["$geoip_continent_name"];
+      var uuid = data.results[0].person.uuid;
+
+      // Output the extracted data
+      console.log("start_time:", startTime);
+      console.log("geoip_latitude:", geoipLatitude);
+      console.log("geoip_longitude:", geoipLongitude);
+      console.log("os:", os);
+      console.log("browser:", browser);
+      console.log("device_type:", deviceType);
+      console.log("geoip_city_name:", geoipCityName);
+      console.log("geoip_country_code:", geoipCountryCode);
+      console.log("os_version:", osVersion);
+      console.log("initial_referrer:", initialReferrer);
+      console.log("geoip_continent_name:", geoipContinentName);
+      console.log("uuid:", uuid);
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
+    });
+
+  // console.log(getdata);
+  // tubeGeometry.country = getdata;
+  // tubeGeometry.population = "111";
   // Animate the drawing of the curve using GSAP
   let drawRange = { value: 0 };
   const totalPoints = tubeGeometry.index.count;
@@ -257,7 +318,7 @@ function performAnimations({
       drawRange = { value: 0 }; //reinitialize drawRange
       console.log(`erasing start from"${drawRange.value} to ${totalPoints}`);
       // Animate slicing the points array point by point from point 0 to point 50
-      gsap.to(drawRange, {
+      var delLineAnimation = gsap.to(drawRange, {
         duration: 2, // Animation duration in seconds
         delay: 1, // Delay before animation starts
         ease: "sine.inOut", // Easing function
@@ -273,7 +334,7 @@ function performAnimations({
           console.log("Points animation complete");
           // Call the function again after a delay to repeat the animations
           setTimeout(
-            performAnimations({
+            performLineAnimations({
               startLatitude: startLatitude,
               startLongitude: startLongitude,
               endLatitude: endLatitude,
@@ -288,7 +349,7 @@ function performAnimations({
     },
   });
 }
-performAnimations({
+performLineAnimations({
   startLatitude: 39.9042,
   startLongitude: 116.4074,
   endLatitude: 1.3521,
@@ -299,7 +360,7 @@ performAnimations({
 function createBox({ lat, long, country, population }) {
   //can use raycaster in three.js to show some value on the sphere point
   const box = new THREE.Mesh(
-    new THREE.BoxGeometry(0.2, 0.2, 0.8), //scale x , scale y , scale z
+    new THREE.BoxGeometry(0.1, 0.1, 0.4), //scale x , scale y , scale z
     new THREE.MeshBasicMaterial({
       color: "#3BF7FF",
       opacity: 0.4, // need to make transparent property true only work
@@ -324,7 +385,7 @@ function createBox({ lat, long, country, population }) {
 
   box.lookAt(0, 0, 0); //perpendicular , boxgeometry always look at the center because sphere is default at 0,0,0
   box.geometry.applyMatrix4(
-    new THREE.Matrix4().makeTranslation(0, 0, -0.4) //translate object in 3d SPACE x,y,z , 0.8/2
+    new THREE.Matrix4().makeTranslation(0, 0, -0.2) //translate object in 3d SPACE x,y,z , 0.8/2
   ); //translate those boxs that are hiding inside the globe
 
   group.add(box);
@@ -400,7 +461,7 @@ const populationValueEl = document.querySelector("#populationValueEl");
 console.log(populationValueEl); // to check if we are select things
 // function sleep(ms) {
 //   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
+// }\\
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
@@ -414,9 +475,21 @@ function animate() {
   // calculate objects intersecting the picking ray , can console log out the filter to see what is it
   const intersects = raycaster.intersectObjects(
     group.children.filter((mesh) => {
-      return mesh.geometry.type === "TubeGeometry";
+      const geometryType = mesh.geometry.type;
+      return geometryType === "BoxGeometry" || geometryType === "TubeGeometry";
     })
   );
+
+  // Check if any intersection involves a TubeGeometry
+  const isIntersectingTube = intersects.some((intersection) => {
+    return intersection.object.geometry.type === "TubeGeometry";
+  });
+
+  // Check if any intersection involves a TubeGeometry
+  const isIntersectingBox = intersects.some((intersection) => {
+    return intersection.object.geometry.type === "BoxGeometry";
+  });
+
   // console.log(intersects);
   // console.log(group.children);
   group.children.forEach((mesh) => {
@@ -431,17 +504,24 @@ function animate() {
 
   //if intersecting
   for (let i = 0; i < intersects.length; i++) {
-    const box = intersects[i].object;
+    const intersectedObjects = intersects[i].object;
     // console.log(intersects[i]);
     // console.log("detected");
     // intersects[i].object.material.color.set(0xff0000);
-    box.material.opacity = 1;
+
     gsap.set(popUpEl, {
       display: "block",
     });
 
-    populationEl.innerHTML = box.country;
-    populationValueEl.innerHTML = box.population;
+    intersectedObjects.material.opacity = 1; //if intersect any object change opacity to 1
+
+    if (isIntersectingBox) {
+      populationEl.innerHTML = intersectedObjects.country;
+      populationValueEl.innerHTML = intersectedObjects.population;
+    } else if (isIntersectingTube) {
+      populationEl.innerHTML = intersectedObjects.country;
+      populationValueEl.innerHTML = intersectedObjects.population;
+    }
   }
   renderer.render(scene, camera);
 }
