@@ -279,6 +279,25 @@ function performLineAnimations({
         data.results[0].person.properties["$geoip_continent_name"];
       var uuid = data.results[0].person.uuid;
 
+      //parse the date time
+      // Parse the timestamp
+      const date = new Date(startTime);
+
+      // Extract hour, minute, and second components
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const seconds = date.getUTCSeconds();
+
+      // Format components to ensure two digits (e.g., 01 instead of 1)
+      const formattedHours = String(hours).padStart(2, "0");
+      const formattedMinutes = String(minutes).padStart(2, "0");
+      const formattedSeconds = String(seconds).padStart(2, "0");
+
+      // Concatenate components to form the 24-hour time string
+      const time24Hours = `${date} ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+
+      console.log(time24Hours); // Output: 14:20:50
+
       // Output the extracted data
       console.log("start_time:", startTime);
       console.log("geoip_latitude:", geoipLatitude);
