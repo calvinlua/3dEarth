@@ -1,5 +1,7 @@
 import { geoDistance, geoInterpolate } from "d3-geo";
-import { polar2Cartesian } from "./utils/coordTranslate";
+import { polar2Cartesian } from "./coordTranslate";
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import gsap from "gsap";
 
 function performLineAnimations({
   startLatitude,
@@ -126,7 +128,7 @@ function performLineAnimations({
   // tubeGeometry.setDrawRange(0, tubeGeometry.index.count);
   tubeGeometry.setDrawRange(0, 0);
   // Add the tube mesh to the scene
-  group.add(tubeMesh);
+  // group.add(tubeMesh);
 
   // Animate the drawing of the curve using GSAP
   let drawRange = { value: 0 };
@@ -176,4 +178,8 @@ function performLineAnimations({
       // on animation complete, run animation remove point by point of the line arc or trigger another function
     },
   });
+
+  return tubeMesh;
 }
+
+export { performLineAnimations };
