@@ -8,6 +8,7 @@ function performLineAnimations({
   startLongitude,
   endLatitude,
   endLongitude,
+  raycaster,
 }) {
   function drawArcOnGlobe({
     alt,
@@ -126,6 +127,11 @@ function performLineAnimations({
   // Create a mesh using the tube geometry and material
   const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
   // tubeGeometry.setDrawRange(0, tubeGeometry.index.count);
+
+  // if (doesIntersectTubeGeometry) {
+  //   tubeMesh.MeshBasicMaterial({ color: 0xffffff });
+  // }
+
   tubeGeometry.setDrawRange(0, 0);
   // Add the tube mesh to the scene
   // group.add(tubeMesh);
@@ -135,7 +141,11 @@ function performLineAnimations({
   const totalPoints = tubeGeometry.index.count;
 
   console.log(`drawing start from"${drawRange.value} to ${totalPoints}`);
-  gsap.to(drawRange, {
+
+  // Nested GSAP loop
+  const tl = gsap.timeline({ paused: false }); // Create a timeline for each box
+
+  tl.to(drawRange, {
     duration: 2, // Animation duration in seconds
     delay: 1, // Delay before animation starts
     ease: "sine.inOut", // Easing function
@@ -148,7 +158,7 @@ function performLineAnimations({
       drawRange = { value: 0 }; //reinitialize drawRange
       console.log(`erasing start from"${drawRange.value} to ${totalPoints}`);
       // Animate slicing the points array point by point from point 0 to point 50
-      var delLineAnimation = gsap.to(drawRange, {
+      tl.to(drawRange, {
         duration: 2, // Animation duration in seconds
         delay: 1, // Delay before animation starts
         ease: "sine.inOut", // Easing function
@@ -175,7 +185,6 @@ function performLineAnimations({
           console.log("repeat animation triggered");
         },
       });
-      // on animation complete, run animation remove point by point of the line arc or trigger another function
     },
   });
 
