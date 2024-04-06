@@ -114,6 +114,7 @@ fetchVisitorData(
   .then((data) => {
     console.log(data.results); // Log the resolved value
     data.results.forEach((item) => {
+      console.log(item);
       // Do something with each item in the array
 
       //     // Extracting data

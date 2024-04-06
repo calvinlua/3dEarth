@@ -1,7 +1,7 @@
 import posthog from "posthog-js";
 
 posthog.init("phc_NRzswrA9ri7puagtOLxF1kO9rtl296tLJWXLOpmDFgd", {
-  api_host: "https://app.posthog.com",
+  api_host: "https://us.posthog.com",
 });
 
 const token = "phx_whu07pSaZvpRWi9ISVky6y2ZCHeIwveM5NyBdKYf26a";

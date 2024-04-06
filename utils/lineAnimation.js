@@ -8,7 +8,6 @@ function performLineAnimations({
   startLongitude,
   endLatitude,
   endLongitude,
-  raycaster,
 }) {
   function drawArcOnGlobe({
     alt,
@@ -143,9 +142,9 @@ function performLineAnimations({
   console.log(`drawing start from"${drawRange.value} to ${totalPoints}`);
 
   // Nested GSAP loop
-  const tl = gsap.timeline({ paused: false }); // Create a timeline for each box
+  const tl = gsap.timeline({ pause: false }); // Create a timeline for each box
 
-  tl.to(drawRange, {
+  gsap.to(drawRange, {
     duration: 2, // Animation duration in seconds
     delay: 1, // Delay before animation starts
     ease: "sine.inOut", // Easing function
@@ -158,7 +157,11 @@ function performLineAnimations({
       drawRange = { value: 0 }; //reinitialize drawRange
       console.log(`erasing start from"${drawRange.value} to ${totalPoints}`);
       // Animate slicing the points array point by point from point 0 to point 50
-      tl.to(drawRange, {
+      // tl.pause();
+      // console.log("Pausing Animation for 10 seconds");
+      // setTimeout(tl.resume(), 10000);
+
+      gsap.to(drawRange, {
         duration: 2, // Animation duration in seconds
         delay: 1, // Delay before animation starts
         ease: "sine.inOut", // Easing function
@@ -173,15 +176,14 @@ function performLineAnimations({
           // Animation complete
           console.log("Points animation complete");
           // Call the function again after a delay to repeat the animations
-          setTimeout(
-            performLineAnimations({
-              startLatitude: startLatitude,
-              startLongitude: startLongitude,
-              endLatitude: endLatitude,
-              endLongitude: endLongitude,
-            }),
-            5000
-          ); // Adjust the delay as needed
+          // setTimeout(function () {
+          //   performLineAnimations({
+          //     startLatitude: startLatitude,
+          //     startLongitude: startLongitude,
+          //     endLatitude: endLatitude,
+          //     endLongitude: endLongitude,
+          //   });
+          // }, 5000);
           console.log("repeat animation triggered");
         },
       });
