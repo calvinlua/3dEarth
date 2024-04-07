@@ -9,6 +9,8 @@ function performLineAnimations({
   endLatitude,
   endLongitude,
 }) {
+  console.log(startLatitude, startLongitude, endLatitude, endLongitude);
+
   function drawArcOnGlobe({
     alt,
     altAutoScale,
@@ -156,6 +158,7 @@ function performLineAnimations({
       console.log(`draw animation complete`);
       drawRange = { value: 0 }; //reinitialize drawRange
       console.log(`erasing start from"${drawRange.value} to ${totalPoints}`);
+      tubeMesh.material.color.set(0x3bf7ff);
       // Animate slicing the points array point by point from point 0 to point 50
       // tl.pause();
       // console.log("Pausing Animation for 10 seconds");
@@ -163,7 +166,7 @@ function performLineAnimations({
 
       gsap.to(drawRange, {
         duration: 2, // Animation duration in seconds
-        delay: 1, // Delay before animation starts
+        delay: 5, // Delay before animation starts
         ease: "sine.inOut", // Easing function
         value: totalPoints, // Draw up to the total number of points
         onUpdate: function () {
@@ -174,17 +177,7 @@ function performLineAnimations({
         },
         onComplete: function () {
           // Animation complete
-          console.log("Points animation complete");
-          // Call the function again after a delay to repeat the animations
-          // setTimeout(function () {
-          //   performLineAnimations({
-          //     startLatitude: startLatitude,
-          //     startLongitude: startLongitude,
-          //     endLatitude: endLatitude,
-          //     endLongitude: endLongitude,
-          //   });
-          // }, 5000);
-          console.log("repeat animation triggered");
+          console.log(" Line Animation completed!");
         },
       });
     },

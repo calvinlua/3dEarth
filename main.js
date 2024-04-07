@@ -107,86 +107,112 @@ scene.add(stars);
 camera.position.z = 15;
 
 //call for posthog rest api
-fetchVisitorData(
-  "GET",
-  "https://app.posthog.com/api/projects/55183/session_recordings/?limit=5"
-)
-  .then((data) => {
-    console.log(data.results); // Log the resolved value
-    data.results.forEach((item) => {
-      console.log(item);
-      // Do something with each item in the array
+function lineAnimationWithRestCall() {
+  fetchVisitorData(
+    "GET",
+    "https://app.posthog.com/api/projects/55183/session_recordings/?limit=5"
+  )
+    .then((data) => {
+      console.log(data.results); // Log the resolved value
+      data.results.forEach((item) => {
+        console.log(item);
+        // Do something with each item in the array
 
-      //     // Extracting data
-      //     var startTime = data.results[0].start_time;
-      //     var geoipLatitude = data.results[0].person.properties["$geoip_latitude"];
-      //     var geoipLongitude =
-      //       data.results[0].person.properties["$geoip_longitude"];
-      //     var os = data.results[0].person.properties["$os"];
-      //     var browser = data.results[0].person.properties["$browser"];
-      //     var deviceType = data.results[0].person.properties["$device_type"];
-      //     var geoipCityName = data.results[0].person.properties["$geoip_city_name"];
-      //     var geoipCountryCode =
-      //       data.results[0].person.properties["$geoip_country_code"];
-      //     var osVersion = data.results[0].person.properties["$os_version"];
-      //     var initialReferrer =
-      //       data.results[0].person.properties["$initial_referrer"];
-      //     var geoipContinentName =
-      //       data.results[0].person.properties["$geoip_continent_name"];
-      //     var uuid = data.results[0].person.uuid;
+        // const origin = {
+        //   //Singapore
+        //   latitude: 1.3521,
+        //   longitude: 103.8198,
+        // };
 
-      //     //parse the date time
-      //     // Parse the timestamp
-      //     const date = new Date(startTime);
+        const origin = {
+          //Kuala Lumpur
+          latitude: 3.1319,
+          longitude: 101.6841,
+        };
 
-      //     // Extract hour, minute, and second components
-      //     const hours = date.getUTCHours();
-      //     const minutes = date.getUTCMinutes();
-      //     const seconds = date.getUTCSeconds();
+        // Extracting data
+        var startTime = item.start_time;
+        var geoipLatitude = item.person.properties["$geoip_latitude"];
+        var geoipLongitude = item.person.properties["$geoip_longitude"];
+        var os = item.person.properties["$os"];
+        var browser = item.person.properties["$browser"];
+        var deviceType = item.person.properties["$device_type"];
+        var geoipCityName = item.person.properties["$geoip_city_name"];
+        var geoipCountryCode = item.person.properties["$geoip_country_code"];
+        var osVersion = item.person.properties["$os_version"];
+        var initialReferrer = item.person.properties["$initial_referrer"];
+        var geoipContinentName =
+          item.person.properties["$geoip_continent_name"];
+        var uuid = item.person.uuid;
 
-      //     // Format components to ensure two digits (e.g., 01 instead of 1)
-      //     const formattedHours = String(hours).padStart(2, "0");
-      //     const formattedMinutes = String(minutes).padStart(2, "0");
-      //     const formattedSeconds = String(seconds).padStart(2, "0");
+        //parse the date time
+        // Parse the timestamp
+        const date = new Date(startTime);
 
-      //     // Concatenate components to form the 24-hour time string
-      //     const time24Hours = `${date} ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+        // Extract hour, minute, and second components
+        const hours = date.getUTCHours();
+        const minutes = date.getUTCMinutes();
+        const seconds = date.getUTCSeconds();
 
-      //     console.log(time24Hours); // Output: 14:20:50
+        // Format components to ensure two digits (e.g., 01 instead of 1)
+        const formattedHours = String(hours).padStart(2, "0");
+        const formattedMinutes = String(minutes).padStart(2, "0");
+        const formattedSeconds = String(seconds).padStart(2, "0");
 
-      //     // Output the extracted data
-      //     console.log("start_time:", startTime);
-      //     console.log("geoip_latitude:", geoipLatitude);
-      //     console.log("geoip_longitude:", geoipLongitude);
-      //     console.log("os:", os);
-      //     console.log("browser:", browser);
-      //     console.log("device_type:", deviceType);
-      //     console.log("geoip_city_name:", geoipCityName);
-      //     console.log("geoip_country_code:", geoipCountryCode);
-      //     console.log("os_version:", osVersion);
-      //     console.log("initial_referrer:", initialReferrer);
-      //     console.log("geoip_continent_name:", geoipContinentName);
-      //     console.log("uuid:", uuid);
-      //   })
+        // Concatenate components to form the 24-hour time string
+        const time24Hours = `${date} ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 
-      // console.log(getdata);
-      // tubeGeometry.country = getdata;
-      // tubeGeometry.population = "111";
-      console.log(item);
+        //TubeGeometry Animation
+        let showOriginVisitorLineAnimation = performLineAnimations({
+          startLatitude: geoipLatitude,
+          startLongitude: geoipLongitude,
+          endLatitude: origin.latitude,
+          endLongitude: origin.longitude,
+        });
+        group.add(showOriginVisitorLineAnimation);
+
+        //     console.log(time24Hours); // Output: 14:20:50
+
+        //     // Output the extracted data
+        //     console.log("start_time:", startTime);
+        //     console.log("geoip_latitude:", geoipLatitude);
+        //     console.log("geoip_longitude:", geoipLongitude);
+        //     console.log("os:", os);
+        //     console.log("browser:", browser);
+        //     console.log("device_type:", deviceType);
+        //     console.log("geoip_city_name:", geoipCityName);
+        //     console.log("geoip_country_code:", geoipCountryCode);
+        //     console.log("os_version:", osVersion);
+        //     console.log("initial_referrer:", initialReferrer);
+        //     console.log("geoip_continent_name:", geoipContinentName);
+        //     console.log("uuid:", uuid);
+        //   })
+
+        // console.log(getdata);
+        // tubeGeometry.country = getdata;
+        // tubeGeometry.population = "111";
+      });
+    })
+    .catch((error) => {
+      console.error(error); // Log any errors
     });
-  })
-  .catch((error) => {
-    console.error(error); // Log any errors
-  });
+}
+lineAnimationWithRestCall();
 
-//TubeGeometry Animation
-const tubeGeometry1 = performLineAnimations({
-  startLatitude: 39.9042,
-  startLongitude: 116.4074,
-  endLatitude: 1.3521,
-  endLongitude: 103.8198,
-});
-group.add(tubeGeometry1);
+// Fetch data every 5 seconds (adjust the interval as needed)
+setInterval(() => {
+  console.log("Repeat animation triggered");
+  lineAnimationWithRestCall();
+}, 10000);
+
+// //TubeGeometry Animation
+// const tubeGeometry1 = performLineAnimations({
+//   startLatitude: 39.9042,
+//   startLongitude: 116.4074,
+//   endLatitude: 1.3521,
+//   endLongitude: 103.8198,
+// });
+// group.add(tubeGeometry1);
 
 // putting {} inside the param function will not need to care about the order you put into the data
 function createBox({ lat, long, country, population }) {
