@@ -13,6 +13,7 @@ import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
 const canvasContainer = document.querySelector("#canvasContainer");
 
+// 1. Declare Scene
 const scene = new THREE.Scene();
 
 let camera = new THREE.PerspectiveCamera(
@@ -33,16 +34,7 @@ renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 renderer.setPixelRatio(window.devicePixelRatio); // increase pixels as screen size increase
 // document.body.appendChild(renderer.domElement); //.domElement is a canvas where the renderer draws its output
 
-function arcLines({ startLat, startLng, endLat, endLng }) {
-  const arcsData = {
-    startLat: (Math.random() - 0.5) * 180,
-    startLng: (Math.random() - 0.5) * 360,
-    endLat: (Math.random() - 0.5) * 180,
-    endLng: (Math.random() - 0.5) * 360,
-    color: ["red", "white", "blue", "green"][Math.round(Math.random() * 3)],
-  };
-}
-
+// 2. Create Earth Sphere
 //create a sphere with mesh needs 2 things - GEOMETRY (radius, width segments , height segments -polygons) , 2nd MATERIAL MESH
 const earthRadius = 5;
 const sphere = new THREE.Mesh(
@@ -64,7 +56,7 @@ const sphere = new THREE.Mesh(
   })
 );
 
-// create outer 2nd atmosphere
+// 3. Create Atmosphere
 const atmosphere = new THREE.Mesh(
   new THREE.SphereGeometry(5, 50, 50),
   new THREE.ShaderMaterial({
@@ -77,11 +69,13 @@ const atmosphere = new THREE.Mesh(
 atmosphere.scale.set(1.2, 1.2, 1.2);
 scene.add(atmosphere);
 
-//Three.js Group - to add a secondary spin effect
+//4. Declare Three.js Group
+// to add a secondary spin effect
 const group = new THREE.Group();
 group.add(sphere); //similar like adding scene
 scene.add(group);
 
+//5. Declare point geometry
 const starGeometry = new THREE.BufferGeometry();
 const starMaterial = new THREE.PointsMaterial({
   color: 0xffffff,
@@ -91,7 +85,9 @@ const starVertices = []; //create an empty array
 for (let i = 0; i < 10000; i++) {
   const x = (Math.random() - 0.5) * 2000; //make sure the random number lays between -0.5 to 0.5
   const y = (Math.random() - 0.5) * 2000;
-  const z = -Math.random() * 2000;
+  // const z = -Math.random() * 2000;
+  const z = (Math.random() - 0.5) * 2000;
+
   starVertices.push(x, y, z); //push into an array for starVertices
 }
 
@@ -102,9 +98,11 @@ starGeometry.setAttribute(
 );
 
 const stars = new THREE.Points(starGeometry, starMaterial);
-scene.add(stars);
+group.add(stars);
 
 camera.position.z = 15;
+
+//6.
 
 //call for posthog rest api
 function lineAnimationWithRestCall() {
