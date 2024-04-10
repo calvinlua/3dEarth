@@ -76,6 +76,24 @@ const group = new THREE.Group();
 group.add(sphere); //similar like adding scene
 scene.add(group);
 
+console.log(group.children);
+
+sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of texture image to the sphere
+
+//Initialise group rotation offset
+group.rotation.offset = {
+  x: 0,
+  y: 0,
+};
+
+const raycaster = new THREE.Raycaster();
+
+const popUpEl = document.querySelector("#popUpEl");
+const populationEl = document.querySelector("#populationEl");
+const populationValueEl = document.querySelector("#populationValueEl");
+
+console.log(populationValueEl); // to check if we are select things
+
 //5. Declare point geometry
 const starGeometry = new THREE.BufferGeometry();
 const starMaterial = new THREE.PointsMaterial({
@@ -103,7 +121,39 @@ group.add(stars);
 
 camera.position.z = 15;
 
-//6.
+//6. Generate boxGeometry
+createBox({
+  lat: 1.3521,
+  long: 103.8198,
+  country: "Singapore",
+  population: "50",
+}); // Singapore
+createBox({
+  lat: 3.1319,
+  long: 101.6841,
+  country: "Kuala Lumpur",
+  population: "23",
+}); //KL
+createBox({
+  lat: 39.9042,
+  long: 116.4074,
+  country: "Beijing",
+  population: "21",
+}); // Beijing 39.9042° N, 116.4074° E
+createBox({
+  lat: 23.6345,
+  long: -102.5528,
+  country: "Mexico ",
+  population: "11",
+}); //mexico 23.6345° N, 102.5528° W
+createBox({
+  lat: -14.235,
+  long: -51.9235,
+  country: "Brazil",
+  population: "22",
+}); // Brazil 14.2350° S, 51.9253° W
+
+//7.
 
 //call for posthog rest api
 function lineAnimationWithRestCall() {
@@ -188,7 +238,7 @@ function lineAnimationWithRestCall() {
         //   })
 
         // console.log(getdata);
-        // tubeGeometry.country = getdata;
+        // tubeGeometry.country = uuid;
         // tubeGeometry.population = "111";
       });
     })
@@ -213,46 +263,6 @@ setInterval(() => {
 // });
 // group.add(tubeGeometry1);
 
-createBox({
-  lat: 1.3521,
-  long: 103.8198,
-  country: "Singapore",
-  population: "50",
-}); // Singapore
-createBox({
-  lat: 3.1319,
-  long: 101.6841,
-  country: "Kuala Lumpur",
-  population: "23",
-}); //KL
-createBox({
-  lat: 39.9042,
-  long: 116.4074,
-  country: "Beijing",
-  population: "21",
-}); // Beijing 39.9042° N, 116.4074° E
-createBox({
-  lat: 23.6345,
-  long: -102.5528,
-  country: "Mexico ",
-  population: "11",
-}); //mexico 23.6345° N, 102.5528° W
-createBox({
-  lat: -14.235,
-  long: -51.9235,
-  country: "Brazil",
-  population: "22",
-}); // Brazil 14.2350° S, 51.9253° W
-
-console.log(group.children);
-
-sphere.rotation.y = -Math.PI / 2; //correct the initial overlay position of texture image to the sphere
-
-group.rotation.offset = {
-  x: 0,
-  y: 0,
-};
-
 const mouse = {
   x: undefined,
   y: undefined,
@@ -261,16 +271,6 @@ const mouse = {
   yPrev: undefined,
 }; // vector 2 pointer based on raycaster threejs
 
-const raycaster = new THREE.Raycaster();
-
-const popUpEl = document.querySelector("#popUpEl");
-const populationEl = document.querySelector("#populationEl");
-const populationValueEl = document.querySelector("#populationValueEl");
-
-console.log(populationValueEl); // to check if we are select things
-// function sleep(ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }\\
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);

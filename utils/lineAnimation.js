@@ -1,6 +1,7 @@
 import { geoDistance, geoInterpolate } from "d3-geo";
 import { polar2Cartesian } from "./coordTranslate";
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import { raycaster, group } from "../main";
 import gsap from "gsap";
 
 function performLineAnimations({
