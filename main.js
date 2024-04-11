@@ -184,14 +184,27 @@ function lineAnimationWithRestCall() {
         var geoipLatitude = item.person.properties["$geoip_latitude"];
         var geoipLongitude = item.person.properties["$geoip_longitude"];
         var os = item.person.properties["$os"];
+        var osVersion = item.person.properties["$os_version"];
         var browser = item.person.properties["$browser"];
         var deviceType = item.person.properties["$device_type"];
-        var geoipCityName = item.person.properties["$geoip_city_name"];
+        var initialReferrer =
+          item.person.properties["$initial_referrer"] == "$direct"
+            ? "https://portfolio-calvinlua.vercel.app directly"
+            : item.person.properties["$initial_referrer"];
+
         var geoipCountryCode = item.person.properties["$geoip_country_code"];
-        var osVersion = item.person.properties["$os_version"];
-        var initialReferrer = item.person.properties["$initial_referrer"];
+        var geoipCountryName =
+          item.person.properties["$initial_geoip_country_name"];
         var geoipContinentName =
           item.person.properties["$geoip_continent_name"];
+        var geoipContinentCode =
+          item.person.properties["$geoip_continent_code"];
+        var geoipStatesName =
+          item.person.properties["$geoip_subdivision_1_name"] == null
+            ? ""
+            : item.person.properties["$geoip_subdivision_1_name"] + ", ";
+        var geoipCityName = item.person.properties["$geoip_city_name"];
+
         var uuid = item.person.uuid;
 
         //parse the date time
@@ -218,6 +231,36 @@ function lineAnimationWithRestCall() {
           endLatitude: origin.latitude,
           endLongitude: origin.longitude,
         });
+
+        showOriginVisitorLineAnimation.country =
+          "Visit from " +
+          initialReferrer +
+          " ,Device: " +
+          deviceType +
+          ", " +
+          os +
+          " Ver " +
+          osVersion;
+        " , Browser: " + browser + " ";
+
+        showOriginVisitorLineAnimation.population =
+          date +
+          "\n , Visitor from (" +
+          geoipCountryCode +
+          ") " +
+          geoipCountryName +
+          ", (" +
+          geoipContinentCode +
+          ") " +
+          geoipContinentName +
+          " , " +
+          geoipStatesName +
+          geoipCityName;
+
+        console.log(
+          showOriginVisitorLineAnimation.country + "Visitor",
+          showOriginVisitorLineAnimation.population
+        );
         group.add(showOriginVisitorLineAnimation);
 
         //     console.log(time24Hours); // Output: 14:20:50
@@ -238,8 +281,6 @@ function lineAnimationWithRestCall() {
         //   })
 
         // console.log(getdata);
-        // tubeGeometry.country = uuid;
-        // tubeGeometry.population = "111";
       });
     })
     .catch((error) => {
@@ -271,6 +312,7 @@ const mouse = {
   yPrev: undefined,
 }; // vector 2 pointer based on raycaster threejs
 
+// function that run at every frame
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
@@ -288,6 +330,10 @@ function animate() {
       return geometryType === "BoxGeometry" || geometryType === "TubeGeometry";
     })
   );
+
+  // for (let i = 0; i < intersects.length; i++) {
+  //   intersects[i].object.material.color.set(0xffffff);
+  // }
 
   // Check if any intersection involves a TubeGeometry
   const isIntersectingTube = intersects.some((intersection) => {
@@ -314,9 +360,9 @@ function animate() {
   //if intersecting
   for (let i = 0; i < intersects.length; i++) {
     const intersectedObjects = intersects[i].object;
-    // console.log(intersects[i]);
-    // console.log("detected");
-    // intersects[i].object.material.color.set(0xff0000);
+    console.log(intersects[i]);
+    console.log("detected");
+    intersects[i].object.material.color.set(0xffffff);
 
     gsap.set(popUpEl, {
       display: "block",
@@ -327,7 +373,10 @@ function animate() {
     if (isIntersectingBox) {
       populationEl.innerHTML = intersectedObjects.country;
       populationValueEl.innerHTML = intersectedObjects.population;
-    } else if (isIntersectingTube) {
+    } else {
+    }
+
+    if (isIntersectingTube) {
       populationEl.innerHTML = intersectedObjects.country;
       populationValueEl.innerHTML = intersectedObjects.population;
     }

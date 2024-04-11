@@ -64,12 +64,15 @@
   <body>
     <!-- fixed so that it does not push the elements down -->
     <div id="popUpEl" class="bg-black bg-opacity-75 fixed px-5 py-3 rounded-lg">
-      <h2 class="text-white text-sm text-xs">
+      <h2 class="text-white text-sm text-lg">
         <span id="populationEl"></span>
         <span>Visitor</span>
       </h2>
 
-      <p id="populationValueEl" class="text-white font-bold text-lg">
+      <p
+        id="populationValueEl"
+        class="text-white font-bold text-sm text-justify"
+      >
         VisitorValue
       </p>
     </div>
@@ -91,6 +94,7 @@
             experiences as a developer and desire on improving my software
             skills has made me come far.
           </p>
+
           <div>
             <!-- Put it in div so that it does not apply flex -->
             <a
@@ -98,6 +102,16 @@
               class="text-white bg-green-600 inline-block px-8 py-4 rounded-full font-lato"
               >Learn More About Me</a
             >
+          </div>
+
+          <div
+            class="absolute bottom-0 left-0 text-gray-600 bg-black text-xs text-wrap"
+          >
+            <p class="line-clamp-3 justify-center text-opacity-40 font-lato">
+              ！Disclaimer: Visitor are tracked only on device information and
+              are only used for illustration and analytic purpose, no private
+              information of visitors are kept
+            </p>
           </div>
         </div>
       </div>
@@ -107,4 +121,15 @@
     </div>
     <script type="module" src="/main.js"></script>
   </body>
+  <!-- <footer class="flex-col bg-black text-white">
+    <p>Author: Calvin Lua</p>
+    <p class="text-sky-400/100">
+      <a href="mailto:hege@example.com">wenzhenglua.sg@gmail.com</a>
+    </p>
+    <p>
+      Disclaimer: All visitors are tracked only on the type of device
+      information and are only used for illustration purpose, no private
+      information of visitors are kept
+    </p>
+  </footer> -->
 </html>

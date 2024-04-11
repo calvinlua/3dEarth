@@ -121,18 +121,11 @@ function performLineAnimations({
     }
   }
   checkFacesIsTriangle(tubeGeometry);
-
-  console.log(tubeGeometry);
-
   const tubeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
   // Create a mesh using the tube geometry and material
   const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
   // tubeGeometry.setDrawRange(0, tubeGeometry.index.count);
-
-  // if (doesIntersectTubeGeometry) {
-  //   tubeMesh.MeshBasicMaterial({ color: 0xffffff });
-  // }
 
   tubeGeometry.setDrawRange(0, 0);
   // Add the tube mesh to the scene
