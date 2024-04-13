@@ -92,7 +92,7 @@ function performLineAnimations({
   // Define the number of segments for the tube
   const tubularSegments = 50; // Adjust as needed
   const radialSegments = 9;
-  const radius = 0.01; // Adjust as needed
+  const radius = 0.015; // Adjust as needed
 
   // Create a tube geometry using the cubic Bezier curve
   const tubeGeometry = new THREE.TubeGeometry(

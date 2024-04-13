@@ -117,7 +117,7 @@ starGeometry.setAttribute(
 );
 
 const stars = new THREE.Points(starGeometry, starMaterial);
-group.add(stars);
+scene.add(stars);
 
 camera.position.z = 15;
 
@@ -317,7 +317,7 @@ function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 
-  group.rotation.y += 0.002;
+  group.rotation.y += 0.0006;
 
   //Raycaster rendering function
   // update the picking ray with the camera and pointer position
