@@ -104,23 +104,23 @@ function performLineAnimations({
   );
 
   // Count the faces
-  console.log(`no. vertices:${tubeGeometry.index.count}`); // total vertices or points in the geometry
+  // console.log(`no. vertices:${tubeGeometry.index.count}`); // total vertices or points in the geometry
   const faces = tubeGeometry.index.count / 3; // Each face is composed of three vertices assumed it is triangle
-  console.log(`no. faces:${faces}`); //total faces
+  // console.log(`no. faces:${faces}`); //total faces
 
-  function checkFacesIsTriangle(geometry) {
-    //geometry must be composed of vector3
-    if (geometry.index.count % 3 == 0) {
-      console.log(
-        `It is a geometry composed of triangle with ${
-          geometry.index.count
-        } vertices and ${geometry.index.count / 3} faces`
-      );
-    } else {
-      console.log(" it is a geometry composed by other shapes than triangle");
-    }
-  }
-  checkFacesIsTriangle(tubeGeometry);
+  // function checkFacesIsTriangle(geometry) {
+  //   //geometry must be composed of vector3
+  //   if (geometry.index.count % 3 == 0) {
+  //     console.log(
+  //       `It is a geometry composed of triangle with ${
+  //         geometry.index.count
+  //       } vertices and ${geometry.index.count / 3} faces`
+  //     );
+  //   } else {
+  //     console.log(" it is a geometry composed by other shapes than triangle");
+  //   }
+  // }
+  // checkFacesIsTriangle(tubeGeometry);
   const tubeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
   // Create a mesh using the tube geometry and material
@@ -140,40 +140,48 @@ function performLineAnimations({
   // Nested GSAP loop
   const tl = gsap.timeline({ pause: false }); // Create a timeline for each box
 
-  gsap.to(drawRange, {
+  tl.to(drawRange, {
     duration: 2, // Animation duration in seconds
-    delay: 1, // Delay before animation starts
     ease: "sine.inOut", // Easing function
     value: totalPoints, // Draw up to the total number of points
     onUpdate: function () {
       tubeMesh.geometry.setDrawRange(0, Math.floor(drawRange.value));
     },
     onComplete: function () {
-      console.log(`draw animation complete`);
+      // console.log(`draw animation complete`);
       drawRange = { value: 0 }; //reinitialize drawRange
-      console.log(`erasing start from"${drawRange.value} to ${totalPoints}`);
       tubeMesh.material.color.set(0x3bf7ff);
-      // Animate slicing the points array point by point from point 0 to point 50
-      // tl.pause();
-      // console.log("Pausing Animation for 10 seconds");
-      // setTimeout(tl.resume(), 10000);
 
-      gsap.to(drawRange, {
-        duration: 2, // Animation duration in seconds
-        delay: 5, // Delay before animation starts
-        ease: "sine.inOut", // Easing function
-        value: totalPoints, // Draw up to the total number of points
-        onUpdate: function () {
-          tubeMesh.geometry.setDrawRange(
-            Math.floor(drawRange.value) * 3,
-            totalPoints
-          );
+      // if (isIntersectingTube) {
+      //   tl.pause();
+      //   console.log("paused!!");
+      // } else {
+      //   tl.resume();
+      //   console.log("resumed!!");
+      // }
+
+      tl.to(
+        drawRange,
+        {
+          duration: 2, // Animation duration in seconds
+          ease: "sine.inOut", // Easing function
+          value: totalPoints, // Draw up to the total number of points
+          onUpdate: function () {
+            // console.log(
+            //   `erasing start from"${drawRange.value} to ${totalPoints}`
+            // );
+            tubeMesh.geometry.setDrawRange(
+              Math.floor(drawRange.value) * 3,
+              totalPoints
+            );
+          },
+          onComplete: function () {
+            // Animation complete
+            // console.log(" Line Animation completed!");
+          },
         },
-        onComplete: function () {
-          // Animation complete
-          console.log(" Line Animation completed!");
-        },
-      });
+        ">5"
+      );
     },
   });
 
