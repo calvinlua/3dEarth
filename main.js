@@ -122,6 +122,7 @@ scene.add(stars);
 camera.position.z = 15;
 
 //6. Generate boxGeometry
+// temporary sample data from various countries for testing
 createBox({
   lat: 1.3521,
   long: 103.8198,
@@ -189,7 +190,7 @@ function lineAnimationWithRestCall() {
         var deviceType = item.person.properties["$device_type"];
         var initialReferrer =
           item.person.properties["$initial_referrer"] == "$direct"
-            ? "https://portfolio-calvinlua.vercel.app directly"
+            ? "Visit website directly"
             : item.person.properties["$initial_referrer"];
 
         var geoipCountryCode = item.person.properties["$geoip_country_code"];
@@ -209,7 +210,11 @@ function lineAnimationWithRestCall() {
 
         //parse the date time
         // Parse the timestamp
-        const date = new Date(startTime);
+        const date = new Date(); // Creates a Date object for the current date and time
+
+        const optionsShort = { dateStyle: "short" };
+        const formatterShort = new Intl.DateTimeFormat("en-GB", optionsShort);
+        const formattedDate = formatterShort.format(date);
 
         // Extract hour, minute, and second components
         const hours = date.getUTCHours();
@@ -221,8 +226,10 @@ function lineAnimationWithRestCall() {
         const formattedMinutes = String(minutes).padStart(2, "0");
         const formattedSeconds = String(seconds).padStart(2, "0");
 
+        console.log("date:", formattedDate);
+
         // Concatenate components to form the 24-hour time string
-        const time24Hours = `${date} ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+        const time24Hours = `${formattedDate} ${formattedHours}:${formattedMinutes}`;
 
         //TubeGeometry Animation
         let showOriginVisitorLineAnimation = performLineAnimations({
@@ -239,12 +246,14 @@ function lineAnimationWithRestCall() {
           deviceType +
           ", " +
           os +
-          " Ver " +
-          osVersion;
-        " , Browser: " + browser + " ";
+          // " Ver " +
+          // osVersion;
+          " , Browser: " +
+          browser +
+          " ";
 
         showOriginVisitorLineAnimation.population =
-          date +
+          time24Hours +
           "\n , Visitor from (" +
           geoipCountryCode +
           ") " +
@@ -403,7 +412,7 @@ addEventListener("mousemove", (event) => {
     // console.log(mouse.y);
   } else {
     //get the offset from canvasContainer
-    const offset = canvasContainer.getBoundingClientRect().top;
+    const offset = canvasContainer.getBoundingClientRect().bottom;
     // console.log(offset);
     mouse.x = (event.clientX / innerWidth) * 2 - 1; // range from -1 to 1 raycasting into the region canvas
     mouse.y = -(event.clientY / innerHeight) * 2 + 1;
