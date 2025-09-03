@@ -17,5 +17,8 @@
     "gsap": "^3.12.4",
     "posthog-js": "^1.118.0",
     "three-globe": "^2.31.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
